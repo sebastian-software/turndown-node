@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.6](https://github.com/sebastian-software/turndown-node/compare/turndown-node-v0.0.5...turndown-node-v0.0.6) (2026-01-27)
+
+
+### Bug Fixes
+
+* configure Release Please to update Cargo.toml version ([c743b20](https://github.com/sebastian-software/turndown-node/commit/c743b20271f65ea503ec25525f0bd6af9144990e))
+* rename release.yml to publish.yml for npm trusted publishers ([1379956](https://github.com/sebastian-software/turndown-node/commit/1379956df13a99855715e8408fae071a57b114d9))
+
 ## [0.0.5](https://github.com/sebastian-software/turndown-node/compare/turndown-node-v0.0.4...turndown-node-v0.0.5) (2026-01-27)
 
 
