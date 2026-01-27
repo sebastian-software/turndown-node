@@ -72,6 +72,7 @@ jobs:
         with:
           node-version: "22"
           cache: "pnpm"
+          registry-url: "https://registry.npmjs.org"
 
       - name: Install dependencies
         run: pnpm install
@@ -104,6 +105,8 @@ jobs:
         run: |
           cd packages/${{ matrix.package }}
           npm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   publish-main:
     name: Publish Main Package
@@ -120,8 +123,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22"
+          registry-url: "https://registry.npmjs.org"
 
       - name: Publish main package
         run: |
           cd packages/turndown-node
           npm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
