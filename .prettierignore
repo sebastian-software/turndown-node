@@ -1,6 +1,1 @@
-node_modules/
-**/node_modules/
-target/
-*.node
-pnpm-lock.yaml
-tests/upstream/
+CHANGELOG.md
