@@ -5,13 +5,19 @@ edition.workspace = true
 license.workspace = true
 repository.workspace = true
 authors.workspace = true
-description = "Convert HTML to Markdown"
-keywords = ["html", "markdown", "turndown", "converter"]
+description = "Convert DOM nodes to Markdown"
+keywords = ["html", "markdown", "turndown", "converter", "cdp"]
 categories = ["text-processing", "web-programming"]
 
+[features]
+default = ["html"]
+# Enable HTML string parsing via scraper/html5ever
+html = ["dep:scraper"]
+
 [dependencies]
-scraper.workspace = true
 regex.workspace = true
 once_cell.workspace = true
 thiserror.workspace = true
 indexmap.workspace = true
+# Optional: HTML parsing
+scraper = { workspace = true, optional = true }

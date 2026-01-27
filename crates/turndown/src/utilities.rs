@@ -1,7 +1,5 @@
 //! Utility functions and constants for HTML processing.
 
-use scraper::ElementRef;
-
 /// Block-level HTML elements
 pub const BLOCK_ELEMENTS: &[&str] = &[
     "address", "article", "aside", "audio", "blockquote", "body", "canvas",
@@ -68,35 +66,6 @@ pub fn clean_attribute(value: Option<&str>) -> String {
         .map(|v| v.trim().to_string())
         .filter(|v| !v.is_empty())
         .unwrap_or_default()
-}
-
-/// Get outer HTML of an element
-pub fn outer_html(element: &ElementRef) -> String {
-    element.html()
-}
-
-/// Get inner HTML of an element
-pub fn inner_html(element: &ElementRef) -> String {
-    element.inner_html()
-}
-
-/// Get text content of an element
-pub fn text_content(element: &ElementRef) -> String {
-    element.text().collect::<Vec<_>>().join("")
-}
-
-/// Check if element is blank (no meaningful content)
-pub fn is_element_blank(element: &ElementRef) -> bool {
-    let tag = element.value().name();
-
-    // Void elements and meaningful-when-blank are not blank
-    if is_void(tag) || is_meaningful_when_blank(tag) {
-        return false;
-    }
-
-    // Check if text content is empty or whitespace only
-    let text: String = element.text().collect();
-    text.trim().is_empty()
 }
 
 #[cfg(test)]

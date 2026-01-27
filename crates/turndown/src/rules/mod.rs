@@ -7,10 +7,9 @@ pub use commonmark::commonmark_rules;
 pub use rule::{Filter, Rule};
 
 use indexmap::IndexMap;
-use scraper::ElementRef;
 
+use crate::node::NodeRef;
 use crate::service::TurndownOptions;
-use crate::utilities::outer_html;
 
 /// Collection of rules for conversion
 pub struct Rules {
@@ -50,24 +49,24 @@ impl Rules {
         self.remove_rules.push(filter);
     }
 
-    /// Find the appropriate rule for an element
-    pub fn for_element<'a>(
+    /// Find the appropriate rule for a node
+    pub fn for_node<'a>(
         &'a self,
-        element: &ElementRef,
+        node: &NodeRef,
         options: &TurndownOptions,
     ) -> Option<&'a Rule> {
-        let tag = element.value().name();
+        let tag = node.tag_name();
 
         // Check custom rules first
         for rule in self.custom_rules.values() {
-            if rule.filter.matches(tag, element, options) {
+            if rule.filter.matches(&tag, node, options) {
                 return Some(rule);
             }
         }
 
         // Check CommonMark rules
         for rule in &self.commonmark_rules {
-            if rule.filter.matches(tag, element, options) {
+            if rule.filter.matches(&tag, node, options) {
                 return Some(rule);
             }
         }
@@ -75,25 +74,25 @@ impl Rules {
         None
     }
 
-    /// Check if an element should be kept as HTML
-    pub fn should_keep(&self, element: &ElementRef, options: &TurndownOptions) -> bool {
-        let tag = element.value().name();
+    /// Check if a node should be kept as HTML
+    pub fn should_keep(&self, node: &NodeRef, options: &TurndownOptions) -> bool {
+        let tag = node.tag_name();
 
         // Don't keep if a custom or commonmark rule matches
         for rule in self.custom_rules.values() {
-            if rule.filter.matches(tag, element, options) {
+            if rule.filter.matches(&tag, node, options) {
                 return false;
             }
         }
         for rule in &self.commonmark_rules {
-            if rule.filter.matches(tag, element, options) {
+            if rule.filter.matches(&tag, node, options) {
                 return false;
             }
         }
 
         // Check keep rules
         for filter in &self.keep_rules {
-            if filter.matches(tag, element, options) {
+            if filter.matches(&tag, node, options) {
                 return true;
             }
         }
@@ -101,30 +100,30 @@ impl Rules {
         false
     }
 
-    /// Check if an element should be removed
-    pub fn should_remove(&self, element: &ElementRef, options: &TurndownOptions) -> bool {
-        let tag = element.value().name();
+    /// Check if a node should be removed
+    pub fn should_remove(&self, node: &NodeRef, options: &TurndownOptions) -> bool {
+        let tag = node.tag_name();
 
         // Don't remove if keep matches
-        if self.should_keep(element, options) {
+        if self.should_keep(node, options) {
             return false;
         }
 
         // Don't remove if a custom or commonmark rule matches
         for rule in self.custom_rules.values() {
-            if rule.filter.matches(tag, element, options) {
+            if rule.filter.matches(&tag, node, options) {
                 return false;
             }
         }
         for rule in &self.commonmark_rules {
-            if rule.filter.matches(tag, element, options) {
+            if rule.filter.matches(&tag, node, options) {
                 return false;
             }
         }
 
         // Check remove rules
         for filter in &self.remove_rules {
-            if filter.matches(tag, element, options) {
+            if filter.matches(&tag, node, options) {
                 return true;
             }
         }
@@ -132,9 +131,9 @@ impl Rules {
         false
     }
 
-    /// Get the keep replacement for an element
-    pub fn keep_replacement(&self, element: &ElementRef) -> String {
-        outer_html(element)
+    /// Get the keep replacement for a node
+    pub fn keep_replacement(&self, node: &NodeRef) -> String {
+        node.outer_html()
     }
 }
 

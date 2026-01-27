@@ -101,7 +101,7 @@ impl TurndownService {
     #[napi]
     pub fn turndown(&self, html: String) -> napi::Result<String> {
         self.inner
-            .turndown(&html)
+            .turndown_html(&html)
             .map_err(|e| napi::Error::from_reason(e.to_string()))
     }
 

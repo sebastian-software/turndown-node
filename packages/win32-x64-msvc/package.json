@@ -1,0 +1,23 @@
+{
+  "name": "@turndown-node/win32-x64-msvc",
+  "version": "0.0.1",
+  "os": [
+    "win32"
+  ],
+  "cpu": [
+    "x64"
+  ],
+  "main": "turndown.win32-x64-msvc.node",
+  "files": [
+    "turndown.win32-x64-msvc.node"
+  ],
+  "description": "turndown-node native binding for Windows x64",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sebastian-software/turndown-node.git"
+  }
+}

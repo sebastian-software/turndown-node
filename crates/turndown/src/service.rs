@@ -1,7 +1,6 @@
-//! TurndownService - the main entry point for HTML to Markdown conversion.
+//! TurndownService - the main entry point for Node to Markdown conversion.
 
-use scraper::{ElementRef, Html, Node};
-
+use crate::node::{Node, NodeRef, NodeType};
 use crate::rules::{Filter, Rule, Rules};
 use crate::Result;
 
@@ -91,7 +90,7 @@ impl Default for TurndownOptions {
     }
 }
 
-/// The main service for converting HTML to Markdown
+/// The main service for converting DOM nodes to Markdown
 pub struct TurndownService {
     options: TurndownOptions,
     rules: Rules,
@@ -114,15 +113,33 @@ impl TurndownService {
         }
     }
 
-    /// Convert HTML to Markdown
-    pub fn turndown(&self, html: &str) -> Result<String> {
-        let document = Html::parse_fragment(html);
-
-        // Process the document
-        let result = self.process_children(document.root_element());
+    /// Convert a DOM Node tree to Markdown
+    pub fn turndown(&self, node: &Node) -> Result<String> {
+        // Process the node tree
+        let result = self.process_node(node, None);
 
         // Post-process
         Ok(self.post_process(&result))
+    }
+
+    /// Convert an HTML string to Markdown.
+    ///
+    /// This parses the HTML using html5ever (via scraper) and converts
+    /// the resulting DOM tree to Markdown.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use turndown::TurndownService;
+    ///
+    /// let service = TurndownService::new();
+    /// let markdown = service.turndown_html("<h1>Hello World</h1>").unwrap();
+    /// assert!(markdown.contains("Hello World"));
+    /// ```
+    #[cfg(feature = "html")]
+    pub fn turndown_html(&self, html: &str) -> Result<String> {
+        let node = crate::html::parse_html(html);
+        self.turndown(&node)
     }
 
     /// Add a custom rule
@@ -167,25 +184,66 @@ impl TurndownService {
         &mut self.options
     }
 
-    /// Process children of an element
-    fn process_children(&self, element: ElementRef) -> String {
+    /// Process a node and its children
+    fn process_node(&self, node: &Node, parent_tag: Option<&str>) -> String {
+        match node.node_type {
+            NodeType::Text => {
+                // Collapse whitespace for text nodes
+                let text = node.node_value.as_deref().unwrap_or("");
+                let collapsed = collapse_whitespace(text);
+                // Escape markdown special characters in text
+                self.escape_text(&collapsed)
+            }
+            NodeType::Element => {
+                self.process_element(node, parent_tag)
+            }
+            NodeType::Document | NodeType::DocumentFragment => {
+                self.process_children(node, parent_tag)
+            }
+            _ => String::new(),
+        }
+    }
+
+    /// Process children of a node
+    fn process_children(&self, node: &Node, parent_tag: Option<&str>) -> String {
+        let tag = if node.is_element() {
+            Some(node.tag_name())
+        } else {
+            None
+        };
+        let parent = tag.as_deref().or(parent_tag);
+
+        // Special handling for ordered lists - track item index
+        if node.is_element() && node.tag_name() == "ol" {
+            return self.process_ordered_list(node, parent);
+        }
+
         let mut result = String::new();
 
-        for child in element.children() {
-            match child.value() {
-                Node::Text(text) => {
-                    // Collapse whitespace for text nodes
-                    let collapsed = collapse_whitespace(&text.text);
-                    // Escape markdown special characters in text
-                    let escaped = self.escape_text(&collapsed);
-                    result.push_str(&escaped);
-                }
-                Node::Element(_) => {
-                    if let Some(child_element) = ElementRef::wrap(child) {
-                        result.push_str(&self.process_element(child_element));
-                    }
-                }
-                _ => {}
+        for child in node.children() {
+            result.push_str(&self.process_node(child, parent));
+        }
+
+        result
+    }
+
+    /// Process an ordered list with proper item numbering
+    fn process_ordered_list(&self, node: &Node, parent_tag: Option<&str>) -> String {
+        let mut result = String::new();
+        let mut index = 1;
+
+        for child in node.children() {
+            if child.is_element() && child.tag_name() == "li" {
+                let content = self.process_children(child, Some("ol"));
+                let content = content
+                    .trim()
+                    .replace("\n\n\n", "\n\n")
+                    .replace('\n', "\n    ");
+
+                result.push_str(&format!("{}.  {}\n", index, content));
+                index += 1;
+            } else {
+                result.push_str(&self.process_node(child, parent_tag));
             }
         }
 
@@ -217,23 +275,30 @@ impl TurndownService {
     }
 
     /// Process a single element
-    fn process_element(&self, element: ElementRef) -> String {
+    fn process_element(&self, node: &Node, parent_tag: Option<&str>) -> String {
+        let node_ref = if let Some(parent) = parent_tag {
+            NodeRef::with_parent(node, parent)
+        } else {
+            NodeRef::new(node)
+        };
+
         // Check if should be removed
-        if self.rules.should_remove(&element, &self.options) {
+        if self.rules.should_remove(&node_ref, &self.options) {
             return String::new();
         }
 
         // Check if should be kept as HTML
-        if self.rules.should_keep(&element, &self.options) {
-            return self.rules.keep_replacement(&element);
+        if self.rules.should_keep(&node_ref, &self.options) {
+            return self.rules.keep_replacement(&node_ref);
         }
 
-        // Process children first
-        let content = self.process_children(element);
+        // Special handling for ordered list items is done in process_ordered_list
+        // For other elements, process children first
+        let content = self.process_children(node, parent_tag);
 
         // Apply rule if one matches
-        if let Some(rule) = self.rules.for_element(&element, &self.options) {
-            return rule.replace(&element, &content, &self.options);
+        if let Some(rule) = self.rules.for_node(&node_ref, &self.options) {
+            return rule.replace(&node_ref, &content, &self.options);
         }
 
         // Default: return content as-is
@@ -296,17 +361,26 @@ fn collapse_whitespace(s: &str) -> String {
 mod tests {
     use super::*;
 
+    fn make_p(text: &str) -> Node {
+        let mut p = Node::element("p");
+        p.add_child(Node::text(text));
+        p
+    }
+
     #[test]
     fn test_simple_paragraph() {
         let service = TurndownService::new();
-        let result = service.turndown("<p>Hello World</p>").unwrap();
+        let node = make_p("Hello World");
+        let result = service.turndown(&node).unwrap();
         assert_eq!(result, "Hello World");
     }
 
     #[test]
     fn test_heading_setext() {
         let service = TurndownService::new();
-        let result = service.turndown("<h1>Title</h1>").unwrap();
+        let mut h1 = Node::element("h1");
+        h1.add_child(Node::text("Title"));
+        let result = service.turndown(&h1).unwrap();
         assert!(result.contains("Title"));
         assert!(result.contains("="));
     }
@@ -318,81 +392,113 @@ mod tests {
             ..Default::default()
         };
         let service = TurndownService::with_options(options);
-        let result = service.turndown("<h1>Title</h1>").unwrap();
+        let mut h1 = Node::element("h1");
+        h1.add_child(Node::text("Title"));
+        let result = service.turndown(&h1).unwrap();
         assert!(result.contains("# Title"));
     }
 
     #[test]
     fn test_emphasis() {
         let service = TurndownService::new();
-        let result = service.turndown("<em>emphasized</em>").unwrap();
+        let mut em = Node::element("em");
+        em.add_child(Node::text("emphasized"));
+        let result = service.turndown(&em).unwrap();
         assert_eq!(result, "_emphasized_");
     }
 
     #[test]
     fn test_strong() {
         let service = TurndownService::new();
-        let result = service.turndown("<strong>bold</strong>").unwrap();
+        let mut strong = Node::element("strong");
+        strong.add_child(Node::text("bold"));
+        let result = service.turndown(&strong).unwrap();
         assert_eq!(result, "**bold**");
     }
 
     #[test]
     fn test_inline_link() {
         let service = TurndownService::new();
-        let result = service
-            .turndown(r#"<a href="https://example.com">Link</a>"#)
-            .unwrap();
+        let mut a = Node::element_with_attrs("a", vec![("href", "https://example.com")]);
+        a.add_child(Node::text("Link"));
+        let result = service.turndown(&a).unwrap();
         assert_eq!(result, "[Link](https://example.com)");
     }
 
     #[test]
     fn test_image() {
         let service = TurndownService::new();
-        let result = service
-            .turndown(r#"<img src="test.png" alt="Alt">"#)
-            .unwrap();
+        let img = Node::element_with_attrs("img", vec![("src", "test.png"), ("alt", "Alt")]);
+        let result = service.turndown(&img).unwrap();
         assert_eq!(result, "![Alt](test.png)");
     }
 
     #[test]
     fn test_inline_code() {
         let service = TurndownService::new();
-        let result = service.turndown("<code>code</code>").unwrap();
+        let mut code = Node::element("code");
+        code.add_child(Node::text("code"));
+        let result = service.turndown(&code).unwrap();
         assert_eq!(result, "`code`");
     }
 
     #[test]
     fn test_horizontal_rule() {
         let service = TurndownService::new();
-        let result = service.turndown("<hr>").unwrap();
+        let hr = Node::element("hr");
+        let result = service.turndown(&hr).unwrap();
         assert!(result.contains("* * *"));
     }
 
     #[test]
     fn test_blockquote() {
         let service = TurndownService::new();
-        let result = service
-            .turndown("<blockquote><p>Quote</p></blockquote>")
-            .unwrap();
+        let mut blockquote = Node::element("blockquote");
+        let mut p = Node::element("p");
+        p.add_child(Node::text("Quote"));
+        blockquote.add_child(p);
+        let result = service.turndown(&blockquote).unwrap();
         assert!(result.contains(">"));
     }
 
     #[test]
     fn test_indented_code_block() {
         let service = TurndownService::new();
-        let result = service
-            .turndown("<pre><code>function() {}</code></pre>")
-            .unwrap();
+        let mut pre = Node::element("pre");
+        let mut code = Node::element("code");
+        code.add_child(Node::text("function() {}"));
+        pre.add_child(code);
+        let result = service.turndown(&pre).unwrap();
         assert_eq!(result, "    function() {}");
     }
 
     #[test]
     fn test_ordered_list() {
         let service = TurndownService::new();
-        let result = service
-            .turndown("<ol><li>One</li><li>Two</li></ol>")
-            .unwrap();
+        let mut ol = Node::element("ol");
+        let mut li1 = Node::element("li");
+        li1.add_child(Node::text("One"));
+        let mut li2 = Node::element("li");
+        li2.add_child(Node::text("Two"));
+        ol.add_child(li1);
+        ol.add_child(li2);
+        let result = service.turndown(&ol).unwrap();
         assert!(result.contains("1.  One"));
         assert!(result.contains("2.  Two"));
+    }
+
+    #[test]
+    fn test_unordered_list() {
+        let service = TurndownService::new();
+        let mut ul = Node::element("ul");
+        let mut li1 = Node::element("li");
+        li1.add_child(Node::text("One"));
+        let mut li2 = Node::element("li");
+        li2.add_child(Node::text("Two"));
+        ul.add_child(li1);
+        ul.add_child(li2);
+        let result = service.turndown(&ul).unwrap();
+        assert!(result.contains("*   One"));
+        assert!(result.contains("*   Two"));
     }
 }
