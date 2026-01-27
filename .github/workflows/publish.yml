@@ -72,7 +72,6 @@ jobs:
         with:
           node-version: "22"
           cache: "pnpm"
-          registry-url: "https://registry.npmjs.org"
 
       - name: Install dependencies
         run: pnpm install
@@ -121,7 +120,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-          registry-url: "https://registry.npmjs.org"
 
       - name: Publish main package
         run: |
