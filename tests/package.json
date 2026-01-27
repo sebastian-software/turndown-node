@@ -2,9 +2,9 @@
   "name": "turndown-node-tests",
   "private": true,
   "scripts": {
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:parity": "jest parity/",
+    "test": "jest parity/",
+    "test:watch": "jest parity/ --watch",
+    "test:all": "jest",
     "test:upstream": "jest upstream/",
     "sync-tests": "node sync-tests.js"
   },
