@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.4](https://github.com/sebastian-software/turndown-node/compare/turndown-node-v0.0.3...turndown-node-v0.0.4) (2026-01-27)
+
+
+### Bug Fixes
+
+* exclude CHANGELOG.md from prettier checks ([544cd52](https://github.com/sebastian-software/turndown-node/commit/544cd529a88627d6a02c977a5c99ca452526a5d1))
+* ignore lock file and upstream tests in prettier ([1844d09](https://github.com/sebastian-software/turndown-node/commit/1844d09b9f9383c876584fb5ae60dff4eb2bd65f))
+
 ## [0.0.3](https://github.com/sebastian-software/turndown-node/compare/turndown-node-v0.0.2...turndown-node-v0.0.3) (2026-01-27)
 
 
