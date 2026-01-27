@@ -31,9 +31,11 @@
           "path": "packages/win32-x64-msvc/package.json",
           "jsonpath": "$.version"
         },
-        "crates/turndown-cdp/Cargo.toml",
-        "crates/turndown-napi/Cargo.toml",
-        "Cargo.toml"
+        {
+          "type": "toml",
+          "path": "Cargo.toml",
+          "jsonpath": "$.workspace.package.version"
+        }
       ]
     }
   },
