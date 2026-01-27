@@ -1,0 +1,17 @@
+{
+  "name": "@turndown-node/darwin-arm64",
+  "version": "0.0.1",
+  "os": ["darwin"],
+  "cpu": ["arm64"],
+  "main": "turndown.darwin-arm64.node",
+  "files": ["turndown.darwin-arm64.node"],
+  "description": "turndown-node native binding for macOS ARM64",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anthropics/turndown-node.git"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "name": "turndown-node-monorepo",
+  "private": true,
+  "packageManager": "pnpm@9.15.0",
+  "scripts": {
+    "build": "pnpm -r build",
+    "build:native": "pnpm --filter @turndown-node/napi build",
+    "test": "pnpm -r test",
+    "test:rust": "cargo test --workspace",
+    "test:js": "pnpm --filter turndown-node-tests test",
+    "sync-tests": "pnpm --filter turndown-node-tests sync-tests",
+    "clean": "pnpm -r clean && cargo clean",
+    "typecheck": "pnpm -r typecheck"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18",
+    "pnpm": ">=9"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "turndown-node-tests",
+  "private": true,
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:parity": "jest parity/",
+    "test:upstream": "jest upstream/",
+    "sync-tests": "node sync-tests.js"
+  },
+  "devDependencies": {
+    "jest": "^29.0.0",
+    "turndown": "^7.2.0",
+    "turndown-node": "workspace:*"
+  }
+}

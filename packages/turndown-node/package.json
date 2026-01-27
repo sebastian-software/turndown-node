@@ -1,0 +1,40 @@
+{
+  "name": "turndown-node",
+  "version": "0.0.1",
+  "description": "Convert HTML to Markdown - Native Node.js bindings for turndown, powered by Rust",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "files": [
+    "index.js",
+    "index.d.ts"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anthropics/turndown-node.git"
+  },
+  "keywords": [
+    "html",
+    "markdown",
+    "turndown",
+    "converter",
+    "html-to-markdown",
+    "napi",
+    "rust",
+    "native"
+  ],
+  "author": "Anthropic",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/anthropics/turndown-node/issues"
+  },
+  "homepage": "https://github.com/anthropics/turndown-node#readme",
+  "engines": {
+    "node": ">=18"
+  },
+  "optionalDependencies": {
+    "@turndown-node/darwin-arm64": "workspace:*",
+    "@turndown-node/linux-x64-gnu": "workspace:*",
+    "@turndown-node/linux-arm64-gnu": "workspace:*",
+    "@turndown-node/win32-x64-msvc": "workspace:*"
+  }
+}

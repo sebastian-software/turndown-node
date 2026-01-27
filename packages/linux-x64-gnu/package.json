@@ -1,0 +1,17 @@
+{
+  "name": "@turndown-node/linux-x64-gnu",
+  "version": "0.0.1",
+  "os": ["linux"],
+  "cpu": ["x64"],
+  "main": "turndown.linux-x64-gnu.node",
+  "files": ["turndown.linux-x64-gnu.node"],
+  "description": "turndown-node native binding for Linux x64",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anthropics/turndown-node.git"
+  }
+}

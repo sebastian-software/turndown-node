@@ -1,0 +1,17 @@
+[package]
+name = "turndown"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+description = "Convert HTML to Markdown"
+keywords = ["html", "markdown", "turndown", "converter"]
+categories = ["text-processing", "web-programming"]
+
+[dependencies]
+scraper.workspace = true
+regex.workspace = true
+once_cell.workspace = true
+thiserror.workspace = true
+indexmap.workspace = true
