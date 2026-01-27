@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.8](https://github.com/sebastian-software/turndown-node/compare/turndown-node-v0.0.7...turndown-node-v0.0.8) (2026-01-27)
+
+
+### Bug Fixes
+
+* use Node.js 24 (npm v11+) for OIDC publishing ([2d19f13](https://github.com/sebastian-software/turndown-node/commit/2d19f13c122b1a87181983eacdc09012b36bf22e))
+* use NPM_TOKEN for npm publishing ([3425f1b](https://github.com/sebastian-software/turndown-node/commit/3425f1b41473320dd852b68fc131184a44234765))
+
 ## [0.0.7](https://github.com/sebastian-software/turndown-node/compare/turndown-node-v0.0.6...turndown-node-v0.0.7) (2026-01-27)
 
 

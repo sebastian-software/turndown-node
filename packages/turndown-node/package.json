@@ -1,6 +1,6 @@
 {
   "name": "turndown-node",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Convert HTML to Markdown - Native Node.js bindings for turndown, powered by Rust",
   "main": "index.js",
   "types": "index.d.ts",
