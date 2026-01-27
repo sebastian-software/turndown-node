@@ -8,7 +8,7 @@ authors.workspace = true
 description = "Convert CDP-style DOM nodes to Markdown"
 keywords = ["markdown", "turndown", "converter", "cdp", "dom"]
 categories = ["text-processing", "web-programming"]
-readme = "../../README.md"
+readme = "README.md"
 
 [dependencies]
 regex.workspace = true

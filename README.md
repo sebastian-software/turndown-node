@@ -2,95 +2,95 @@
 
 [![CI](https://github.com/sebastian-software/turndown-node/actions/workflows/ci.yml/badge.svg)](https://github.com/sebastian-software/turndown-node/actions/workflows/ci.yml)
 [![npm version](https://img.shields.io/npm/v/turndown-node.svg)](https://www.npmjs.com/package/turndown-node)
+[![crates.io](https://img.shields.io/crates/v/turndown-cdp.svg)](https://crates.io/crates/turndown-cdp)
 
-Convert HTML to Markdown - Native Node.js bindings for [turndown](https://github.com/mixmark-io/turndown), powered by Rust.
+Convert HTML to Markdown. Available as a native Node.js module and as a Rust crate.
 
-## Why turndown-node?
+## Packages
 
-- **100% Compatible**: Drop-in replacement for turndown with identical output
-- **Native Performance**: Built with Rust and NAPI-RS for maximum speed
-- **Battle-tested Parser**: Uses html5ever (Firefox's HTML parser) via the scraper crate
+This monorepo provides two ways to use turndown:
 
-## Installation
+| Package                                                        | Platform  | Description                        |
+| -------------------------------------------------------------- | --------- | ---------------------------------- |
+| [`turndown-node`](https://www.npmjs.com/package/turndown-node) | npm       | Node.js bindings with HTML parsing |
+| [`turndown-cdp`](https://crates.io/crates/turndown-cdp)        | crates.io | Rust crate for CDP-style DOM trees |
+
+## Node.js Usage
 
 ```bash
 npm install turndown-node
-# or
-pnpm add turndown-node
 ```
-
-## Usage
 
 ```javascript
 const TurndownService = require("turndown-node");
 
 const turndownService = new TurndownService();
 const markdown = turndownService.turndown("<h1>Hello World</h1>");
-console.log(markdown);
-// Hello World
-// ===========
+// => "Hello World\n==========="
 ```
 
-### Options
+**100% compatible** with [turndown](https://github.com/mixmark-io/turndown) v7.2.0 - drop-in replacement with identical output.
 
-````javascript
-const turndownService = new TurndownService({
-  headingStyle: "atx", // 'setext' (default) or 'atx'
-  codeBlockStyle: "fenced", // 'indented' (default) or 'fenced'
-  bulletListMarker: "-", // '*' (default), '-', or '+'
-  emDelimiter: "*", // '_' (default) or '*'
-  strongDelimiter: "__", // '**' (default) or '__'
-  fence: "```", // fence for fenced code blocks
-  hr: "---", // horizontal rule string
-});
-````
+[Full Node.js documentation →](packages/turndown-node/README.md)
 
-### API
+## Rust Usage
 
-#### `turndown(html)`
-
-Convert an HTML string to Markdown.
-
-```javascript
-turndownService.turndown("<p>Hello <strong>World</strong></p>");
-// => "Hello **World**"
+```bash
+cargo add turndown-cdp
 ```
 
-#### `keep(filter)`
+```rust
+use turndown_cdp::{TurndownService, Node};
 
-Keep elements as HTML instead of converting them.
+let service = TurndownService::new();
 
-```javascript
-turndownService.keep(["del", "ins"]);
-turndownService.turndown("<p>Hello <del>World</del></p>");
-// => "Hello <del>World</del>"
+// Build a DOM tree
+let mut h1 = Node::element("h1");
+h1.add_child(Node::text("Hello World"));
+
+let markdown = service.turndown(&h1).unwrap();
 ```
 
-#### `remove(filter)`
+The Rust crate uses a **CDP-style Node structure** (Chrome DevTools Protocol), making it ideal for:
 
-Remove elements entirely from the output.
+- Browser automation with [chromiumoxide](https://crates.io/crates/chromiumoxide)
+- Readability/content extraction pipelines
+- Any scenario where DOM is already parsed
 
-```javascript
-turndownService.remove(["script", "style"]);
+[Full Rust documentation →](crates/turndown-cdp/README.md)
+
+## Architecture
+
 ```
-
-#### `escape(text)`
-
-Escape Markdown special characters in a string.
-
-```javascript
-turndownService.escape("*not emphasis*");
-// => "\\*not emphasis\\*"
+┌─────────────────────────────────────────────────────────┐
+│                   turndown-cdp (Rust)                   │
+│              Pure Node → Markdown conversion            │
+│                   No HTML parser included               │
+└─────────────────────────────────────────────────────────┘
+                            ▲
+                            │
+              ┌─────────────┴─────────────┐
+              │                           │
+   ┌──────────┴──────────┐     ┌──────────┴──────────┐
+   │   turndown-napi     │     │   Your Rust App     │
+   │   (HTML parsing)    │     │   (chromiumoxide)   │
+   └──────────┬──────────┘     └─────────────────────┘
+              │
+   ┌──────────┴──────────┐
+   │   turndown-node     │
+   │   (npm package)     │
+   └─────────────────────┘
 ```
 
 ## Supported Platforms
 
-| Platform | Architecture          | Status |
-| -------- | --------------------- | ------ |
-| macOS    | ARM64 (Apple Silicon) | ✅     |
-| Linux    | x64 (glibc)           | ✅     |
-| Linux    | ARM64 (glibc)         | ✅     |
-| Windows  | x64                   | ✅     |
+| Platform | Architecture          | npm | Rust |
+| -------- | --------------------- | --- | ---- |
+| macOS    | ARM64 (Apple Silicon) | ✅  | ✅   |
+| macOS    | x64                   | -   | ✅   |
+| Linux    | x64 (glibc)           | ✅  | ✅   |
+| Linux    | ARM64 (glibc)         | ✅  | ✅   |
+| Windows  | x64                   | ✅  | ✅   |
 
 ## Development
 
@@ -111,6 +111,9 @@ pnpm build
 
 # Run tests
 pnpm test
+
+# Run Rust tests
+cargo test --workspace
 ```
 
 ### Project Structure
@@ -118,20 +121,16 @@ pnpm test
 ```
 turndown-node/
 ├── crates/
-│   ├── turndown/           # Core Rust library
-│   └── turndown-napi/      # NAPI-RS bindings
+│   ├── turndown-cdp/       # Core Rust library (crates.io)
+│   └── turndown-napi/      # NAPI-RS bindings + HTML parsing
 ├── packages/
 │   ├── turndown-node/      # Main npm package
-│   ├── darwin-arm64/       # macOS ARM64 native binding
-│   ├── linux-x64-gnu/      # Linux x64 native binding
-│   ├── linux-arm64-gnu/    # Linux ARM64 native binding
-│   └── win32-x64-msvc/     # Windows x64 native binding
+│   ├── darwin-arm64/       # Platform-specific bindings
+│   ├── linux-x64-gnu/
+│   ├── linux-arm64-gnu/
+│   └── win32-x64-msvc/
 └── tests/                  # Jest parity tests
 ```
-
-## Compatibility
-
-This is a 1:1 compatible port of [turndown](https://www.npmjs.com/package/turndown) v7.2.0. All CommonMark elements produce identical output.
 
 ## License
 
