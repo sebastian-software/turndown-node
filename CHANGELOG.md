@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.7](https://github.com/sebastian-software/turndown-node/compare/turndown-node-v0.0.6...turndown-node-v0.0.7) (2026-01-27)
+
+
+### Bug Fixes
+
+* remove registry-url for npm OIDC publishing ([5934d5c](https://github.com/sebastian-software/turndown-node/commit/5934d5c532b85ca063da1480486fbe939b7aad1f))
+
 ## [0.0.6](https://github.com/sebastian-software/turndown-node/compare/turndown-node-v0.0.5...turndown-node-v0.0.6) (2026-01-27)
 
 
