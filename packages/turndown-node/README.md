@@ -11,26 +11,26 @@ npm install turndown-node
 ## Usage
 
 ```javascript
-const TurndownService = require('turndown-node');
+const TurndownService = require("turndown-node");
 
 const turndownService = new TurndownService();
-const markdown = turndownService.turndown('<h1>Hello World</h1>');
+const markdown = turndownService.turndown("<h1>Hello World</h1>");
 console.log(markdown); // "Hello World\n==========="
 ```
 
 ## Options
 
-```javascript
+````javascript
 const turndownService = new TurndownService({
-  headingStyle: 'atx',        // 'setext' (default) or 'atx'
-  codeBlockStyle: 'fenced',   // 'indented' (default) or 'fenced'
-  bulletListMarker: '-',      // '*' (default), '-', or '+'
-  emDelimiter: '*',           // '_' (default) or '*'
-  strongDelimiter: '__',      // '**' (default) or '__'
-  fence: '```',               // fence for fenced code blocks
-  hr: '---',                  // horizontal rule string
+  headingStyle: "atx", // 'setext' (default) or 'atx'
+  codeBlockStyle: "fenced", // 'indented' (default) or 'fenced'
+  bulletListMarker: "-", // '*' (default), '-', or '+'
+  emDelimiter: "*", // '_' (default) or '*'
+  strongDelimiter: "__", // '**' (default) or '__'
+  fence: "```", // fence for fenced code blocks
+  hr: "---", // horizontal rule string
 });
-```
+````
 
 ## API
 
@@ -43,7 +43,7 @@ Convert an HTML string to Markdown.
 Keep elements as HTML instead of converting them.
 
 ```javascript
-turndownService.keep(['del', 'ins']);
+turndownService.keep(["del", "ins"]);
 ```
 
 ### `remove(filter)`
@@ -51,7 +51,7 @@ turndownService.keep(['del', 'ins']);
 Remove elements entirely from the output.
 
 ```javascript
-turndownService.remove(['script', 'style']);
+turndownService.remove(["script", "style"]);
 ```
 
 ### `escape(text)`

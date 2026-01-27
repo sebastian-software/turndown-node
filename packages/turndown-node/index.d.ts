@@ -1,13 +1,13 @@
 export interface Options {
-  headingStyle?: 'setext' | 'atx';
+  headingStyle?: "setext" | "atx";
   hr?: string;
-  bulletListMarker?: '*' | '-' | '+';
-  codeBlockStyle?: 'indented' | 'fenced';
-  fence?: '```' | '~~~';
-  emDelimiter?: '_' | '*';
-  strongDelimiter?: '**' | '__';
-  linkStyle?: 'inlined' | 'referenced';
-  linkReferenceStyle?: 'full' | 'collapsed' | 'shortcut';
+  bulletListMarker?: "*" | "-" | "+";
+  codeBlockStyle?: "indented" | "fenced";
+  fence?: "```" | "~~~";
+  emDelimiter?: "_" | "*";
+  strongDelimiter?: "**" | "__";
+  linkStyle?: "inlined" | "referenced";
+  linkReferenceStyle?: "full" | "collapsed" | "shortcut";
 }
 
 export interface Rule {

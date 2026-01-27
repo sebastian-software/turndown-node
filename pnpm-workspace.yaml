@@ -1,4 +1,4 @@
 packages:
-  - 'packages/*'
-  - 'crates/turndown-napi'
-  - 'tests'
+  - "packages/*"
+  - "crates/turndown-napi"
+  - "tests"

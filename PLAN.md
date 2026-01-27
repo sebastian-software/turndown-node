@@ -99,9 +99,9 @@ turndown-node/
 
 ```yaml
 packages:
-  - 'packages/*'
-  - 'crates/turndown-napi'
-  - 'tests'
+  - "packages/*"
+  - "crates/turndown-napi"
+  - "tests"
 ```
 
 ### `Cargo.toml` (Workspace)
@@ -151,7 +151,7 @@ thiserror = { workspace = true }
 
 ### 1.2 Optionen (TurndownOptions)
 
-```rust
+````rust
 pub struct TurndownOptions {
     /// "setext" oder "atx"
     pub heading_style: HeadingStyle,
@@ -180,7 +180,7 @@ pub struct TurndownOptions {
     /// "full", "collapsed", "shortcut"
     pub link_reference_style: LinkReferenceStyle,
 }
-```
+````
 
 ### 1.3 Service (TurndownService)
 
@@ -234,23 +234,23 @@ pub struct Rules {
 
 ### 1.5 CommonMark-Regeln
 
-| Regel | HTML-Elemente | Markdown-Output |
-|-------|---------------|-----------------|
-| `paragraph` | `p` | `\n\n{content}\n\n` |
-| `line_break` | `br` | `  \n` |
-| `heading` | `h1`-`h6` | `# ` oder Setext |
-| `blockquote` | `blockquote` | `> ` |
-| `list` | `ul`, `ol` | Listen |
-| `list_item` | `li` | `* ` oder `1. ` |
-| `indented_code_block` | `pre > code` | 4 Spaces |
-| `fenced_code_block` | `pre > code` | ``` |
-| `horizontal_rule` | `hr` | `---` |
-| `inline_link` | `a` | `[text](url)` |
-| `reference_link` | `a` | `[text][ref]` |
-| `emphasis` | `em`, `i` | `_text_` |
-| `strong` | `strong`, `b` | `**text**` |
-| `code` | `code` | `` `code` `` |
-| `image` | `img` | `![alt](src)` |
+| Regel                 | HTML-Elemente | Markdown-Output     |
+| --------------------- | ------------- | ------------------- |
+| `paragraph`           | `p`           | `\n\n{content}\n\n` |
+| `line_break`          | `br`          | `  \n`              |
+| `heading`             | `h1`-`h6`     | `# ` oder Setext    |
+| `blockquote`          | `blockquote`  | `> `                |
+| `list`                | `ul`, `ol`    | Listen              |
+| `list_item`           | `li`          | `* ` oder `1. `     |
+| `indented_code_block` | `pre > code`  | 4 Spaces            |
+| `fenced_code_block`   | `pre > code`  | ```                 |
+| `horizontal_rule`     | `hr`          | `---`               |
+| `inline_link`         | `a`           | `[text](url)`       |
+| `reference_link`      | `a`           | `[text][ref]`       |
+| `emphasis`            | `em`, `i`     | `_text_`            |
+| `strong`              | `strong`, `b` | `**text**`          |
+| `code`                | `code`        | `` `code` ``        |
+| `image`               | `img`         | `![alt](src)`       |
 
 ### 1.6 Utilities
 
@@ -375,14 +375,14 @@ const { platform, arch } = process;
 
 const platformArchMap = {
   darwin: {
-    arm64: '@turndown-node/darwin-arm64',
+    arm64: "@turndown-node/darwin-arm64",
   },
   linux: {
-    arm64: '@turndown-node/linux-arm64-gnu',
-    x64: '@turndown-node/linux-x64-gnu',
+    arm64: "@turndown-node/linux-arm64-gnu",
+    x64: "@turndown-node/linux-x64-gnu",
   },
   win32: {
-    x64: '@turndown-node/win32-x64-msvc',
+    x64: "@turndown-node/win32-x64-msvc",
   },
 };
 
@@ -392,8 +392,8 @@ function loadNativeBinding() {
   if (!packageName) {
     throw new Error(
       `Unsupported platform: ${platform}-${arch}. ` +
-      `Supported: darwin-arm64, linux-x64, linux-arm64, win32-x64. ` +
-      `Please open an issue at https://github.com/anthropics/turndown-node/issues`
+        `Supported: darwin-arm64, linux-x64, linux-arm64, win32-x64. ` +
+        `Please open an issue at https://github.com/anthropics/turndown-node/issues`
     );
   }
 
@@ -402,9 +402,9 @@ function loadNativeBinding() {
   } catch (e) {
     throw new Error(
       `Failed to load native binding for ${platform}-${arch}.\n` +
-      `Package: ${packageName}\n` +
-      `Error: ${e.message}\n\n` +
-      `Try reinstalling with: npm install turndown-node`
+        `Package: ${packageName}\n` +
+        `Error: ${e.message}\n\n` +
+        `Try reinstalling with: npm install turndown-node`
     );
   }
 }
@@ -418,17 +418,17 @@ module.exports.default = nativeBinding.TurndownService;
 
 ### 2.6 TypeScript-Definitionen (`packages/turndown-node/index.d.ts`)
 
-```typescript
+````typescript
 export interface Options {
-  headingStyle?: 'setext' | 'atx';
+  headingStyle?: "setext" | "atx";
   hr?: string;
-  bulletListMarker?: '*' | '-' | '+';
-  codeBlockStyle?: 'indented' | 'fenced';
-  fence?: '```' | '~~~';
-  emDelimiter?: '_' | '*';
-  strongDelimiter?: '**' | '__';
-  linkStyle?: 'inlined' | 'referenced';
-  linkReferenceStyle?: 'full' | 'collapsed' | 'shortcut';
+  bulletListMarker?: "*" | "-" | "+";
+  codeBlockStyle?: "indented" | "fenced";
+  fence?: "```" | "~~~";
+  emDelimiter?: "_" | "*";
+  strongDelimiter?: "**" | "__";
+  linkStyle?: "inlined" | "referenced";
+  linkReferenceStyle?: "full" | "collapsed" | "shortcut";
 }
 
 export interface Rule {
@@ -447,7 +447,7 @@ export class TurndownService {
 }
 
 export default TurndownService;
-```
+````
 
 ---
 
@@ -460,28 +460,25 @@ Die Tests bleiben in JavaScript und laufen gegen die Node.js Bindings.
 ```javascript
 #!/usr/bin/env node
 
-const https = require('https');
-const fs = require('fs');
-const path = require('path');
+const https = require("https");
+const fs = require("fs");
+const path = require("path");
 
-const TURNDOWN_REPO = 'mixmark-io/turndown';
-const TURNDOWN_BRANCH = 'master';
-const FILES_TO_SYNC = [
-  'test/turndown-test.js',
-  'test/internals-test.js',
-];
+const TURNDOWN_REPO = "mixmark-io/turndown";
+const TURNDOWN_BRANCH = "master";
+const FILES_TO_SYNC = ["test/turndown-test.js", "test/internals-test.js"];
 
-const UPSTREAM_DIR = path.join(__dirname, 'upstream');
+const UPSTREAM_DIR = path.join(__dirname, "upstream");
 
 async function fetchFile(filePath) {
   const url = `https://raw.githubusercontent.com/${TURNDOWN_REPO}/${TURNDOWN_BRANCH}/${filePath}`;
 
   return new Promise((resolve, reject) => {
     https.get(url, (res) => {
-      let data = '';
-      res.on('data', chunk => data += chunk);
-      res.on('end', () => resolve(data));
-      res.on('error', reject);
+      let data = "";
+      res.on("data", (chunk) => (data += chunk));
+      res.on("end", () => resolve(data));
+      res.on("error", reject);
     });
   });
 }
@@ -490,28 +487,29 @@ async function getLatestCommit() {
   const url = `https://api.github.com/repos/${TURNDOWN_REPO}/commits/${TURNDOWN_BRANCH}`;
 
   return new Promise((resolve, reject) => {
-    https.get(url, { headers: { 'User-Agent': 'turndown-node-sync' } }, (res) => {
-      let data = '';
-      res.on('data', chunk => data += chunk);
-      res.on('end', () => {
-        const json = JSON.parse(data);
-        resolve({
-          sha: json.sha.substring(0, 8),
-          date: json.commit.committer.date,
-          message: json.commit.message.split('\n')[0]
+    https.get(
+      url,
+      { headers: { "User-Agent": "turndown-node-sync" } },
+      (res) => {
+        let data = "";
+        res.on("data", (chunk) => (data += chunk));
+        res.on("end", () => {
+          const json = JSON.parse(data);
+          resolve({
+            sha: json.sha.substring(0, 8),
+            date: json.commit.committer.date,
+            message: json.commit.message.split("\n")[0],
+          });
         });
-      });
-      res.on('error', reject);
-    });
+        res.on("error", reject);
+      }
+    );
   });
 }
 
 function adaptTestFile(content, filename) {
   let adapted = content
-    .replace(
-      /require\(['"]turndown['"]\)/g,
-      "require('turndown-node')"
-    )
+    .replace(/require\(['"]turndown['"]\)/g, "require('turndown-node')")
     .replace(
       /import TurndownService from ['"]turndown['"]/g,
       "import TurndownService from 'turndown-node'"
@@ -529,7 +527,7 @@ function adaptTestFile(content, filename) {
 }
 
 async function syncTests() {
-  console.log('Syncing tests from turndown repository...\n');
+  console.log("Syncing tests from turndown repository...\n");
 
   if (!fs.existsSync(UPSTREAM_DIR)) {
     fs.mkdirSync(UPSTREAM_DIR, { recursive: true });
@@ -548,11 +546,15 @@ async function syncTests() {
   }
 
   fs.writeFileSync(
-    path.join(UPSTREAM_DIR, '.turndown-version'),
-    JSON.stringify({ sha: commit.sha, syncedAt: new Date().toISOString() }, null, 2)
+    path.join(UPSTREAM_DIR, ".turndown-version"),
+    JSON.stringify(
+      { sha: commit.sha, syncedAt: new Date().toISOString() },
+      null,
+      2
+    )
   );
 
-  console.log('\nSync complete!');
+  console.log("\nSync complete!");
 }
 
 syncTests().catch(console.error);
@@ -561,19 +563,19 @@ syncTests().catch(console.error);
 ### 3.2 Parity-Tests (`tests/parity/parity.test.js`)
 
 ```javascript
-const TurndownNode = require('turndown-node');
-const TurndownOriginal = require('turndown');
+const TurndownNode = require("turndown-node");
+const TurndownOriginal = require("turndown");
 
-describe('turndown-node vs turndown parity', () => {
+describe("turndown-node vs turndown parity", () => {
   const testCases = [
-    '<p>Hello World</p>',
-    '<h1>Heading</h1>',
+    "<p>Hello World</p>",
+    "<h1>Heading</h1>",
     '<a href="https://example.com">Link</a>',
-    '<strong><em>Bold and italic</em></strong>',
-    '<ul><li>One</li><li>Two</li></ul>',
-    '<pre><code>code block</code></pre>',
-    '<blockquote><p>Quote</p></blockquote>',
-    '<hr>',
+    "<strong><em>Bold and italic</em></strong>",
+    "<ul><li>One</li><li>Two</li></ul>",
+    "<pre><code>code block</code></pre>",
+    "<blockquote><p>Quote</p></blockquote>",
+    "<hr>",
     '<img src="test.png" alt="Alt">',
   ];
 
@@ -665,7 +667,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'pnpm'
+          cache: "pnpm"
 
       - uses: dtolnay/rust-toolchain@stable
         with:
@@ -709,7 +711,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'pnpm'
+          cache: "pnpm"
       - uses: actions/download-artifact@v4
         with:
           name: bindings-x86_64-unknown-linux-gnu
@@ -779,8 +781,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'pnpm'
-          registry-url: 'https://registry.npmjs.org'
+          cache: "pnpm"
+          registry-url: "https://registry.npmjs.org"
 
       - uses: dtolnay/rust-toolchain@stable
         with:
@@ -826,8 +828,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'pnpm'
-          registry-url: 'https://registry.npmjs.org'
+          cache: "pnpm"
+          registry-url: "https://registry.npmjs.org"
 
       - run: pnpm install
 
@@ -846,6 +848,7 @@ jobs:
 ### 4.3 Release-Please Konfiguration
 
 `release-please-config.json`:
+
 ```json
 {
   "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
@@ -873,6 +876,7 @@ jobs:
 ```
 
 `.release-please-manifest.json`:
+
 ```json
 {
   ".": "0.0.1"
@@ -884,12 +888,14 @@ jobs:
 ## Implementierungsreihenfolge
 
 ### Phase 1: Grundstruktur
+
 - [ ] Repository umbenennen/erstellen
 - [ ] pnpm Workspace Setup
 - [ ] Cargo Workspace Setup
 - [ ] Basis-Struktur aller Pakete
 
 ### Phase 2: Rust-Kernbibliothek
+
 - [ ] HTML-Parsing mit `html5ever`
 - [ ] `TurndownService` Grundstruktur
 - [ ] `Rule` und `Filter` System
@@ -898,17 +904,20 @@ jobs:
 - [ ] Escape-Funktion
 
 ### Phase 3: Node.js Bindings
+
 - [ ] NAPI-RS Setup
 - [ ] API-Mapping Rust → JS
 - [ ] TypeScript-Definitionen
 - [ ] Entry Point mit Platform-Detection
 
 ### Phase 4: Tests
+
 - [ ] Test-Sync Script
 - [ ] Upstream-Tests synchronisieren
 - [ ] Parity-Tests gegen Original
 
 ### Phase 5: CI/CD & Release
+
 - [ ] GitHub Actions Workflows
 - [ ] Release-Please Konfiguration
 - [ ] npm Scope `@turndown-node` erstellen

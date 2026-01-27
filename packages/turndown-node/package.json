@@ -10,7 +10,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/anthropics/turndown-node.git"
+    "url": "git+https://github.com/sebastian-software/turndown-node.git"
   },
   "keywords": [
     "html",
@@ -22,12 +22,12 @@
     "rust",
     "native"
   ],
-  "author": "Anthropic",
+  "author": "Sebastian Software GmbH",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/anthropics/turndown-node/issues"
+    "url": "https://github.com/sebastian-software/turndown-node/issues"
   },
-  "homepage": "https://github.com/anthropics/turndown-node#readme",
+  "homepage": "https://github.com/sebastian-software/turndown-node#readme",
   "engines": {
     "node": ">=18"
   },

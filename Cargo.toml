@@ -6,8 +6,8 @@ resolver = "2"
 version = "0.0.1"
 edition = "2021"
 license = "MIT"
-repository = "https://github.com/anthropics/turndown-node"
-authors = ["Anthropic"]
+repository = "https://github.com/sebastian-software/turndown-node"
+authors = ["Sebastian Software GmbH"]
 
 [workspace.dependencies]
 scraper = "0.22"
