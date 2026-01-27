@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.5](https://github.com/sebastian-software/turndown-node/compare/turndown-node-v0.0.4...turndown-node-v0.0.5) (2026-01-27)
+
+
+### Bug Fixes
+
+* use npm Trusted Publishers with provenance ([f1cd196](https://github.com/sebastian-software/turndown-node/commit/f1cd196d9a2de8368148089b80c181ff7932455e))
+
 ## [0.0.4](https://github.com/sebastian-software/turndown-node/compare/turndown-node-v0.0.3...turndown-node-v0.0.4) (2026-01-27)
 
 
