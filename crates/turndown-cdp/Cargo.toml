@@ -1,23 +1,17 @@
 [package]
-name = "turndown"
+name = "turndown-cdp"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
 authors.workspace = true
-description = "Convert DOM nodes to Markdown"
-keywords = ["html", "markdown", "turndown", "converter", "cdp"]
+description = "Convert CDP-style DOM nodes to Markdown"
+keywords = ["markdown", "turndown", "converter", "cdp", "dom"]
 categories = ["text-processing", "web-programming"]
-
-[features]
-default = ["html"]
-# Enable HTML string parsing via scraper/html5ever
-html = ["dep:scraper"]
+readme = "../../README.md"
 
 [dependencies]
 regex.workspace = true
 once_cell.workspace = true
 thiserror.workspace = true
 indexmap.workspace = true
-# Optional: HTML parsing
-scraper = { workspace = true, optional = true }

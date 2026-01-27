@@ -122,26 +122,6 @@ impl TurndownService {
         Ok(self.post_process(&result))
     }
 
-    /// Convert an HTML string to Markdown.
-    ///
-    /// This parses the HTML using html5ever (via scraper) and converts
-    /// the resulting DOM tree to Markdown.
-    ///
-    /// # Example
-    ///
-    /// ```rust
-    /// use turndown::TurndownService;
-    ///
-    /// let service = TurndownService::new();
-    /// let markdown = service.turndown_html("<h1>Hello World</h1>").unwrap();
-    /// assert!(markdown.contains("Hello World"));
-    /// ```
-    #[cfg(feature = "html")]
-    pub fn turndown_html(&self, html: &str) -> Result<String> {
-        let node = crate::html::parse_html(html);
-        self.turndown(&node)
-    }
-
     /// Add a custom rule
     pub fn add_rule(&mut self, key: &str, rule: Rule) -> &mut Self {
         self.rules.add(key, rule);

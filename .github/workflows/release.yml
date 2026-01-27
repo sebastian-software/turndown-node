@@ -19,10 +19,27 @@ jobs:
       - uses: googleapis/release-please-action@v4
         id: release
         with:
-          release-type: node
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  publish-crates:
+    name: Publish to crates.io
+    needs: release-please
+    if: ${{ needs.release-please.outputs.release_created }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-action@stable
+
+      - name: Publish turndown-cdp crate
+        run: cargo publish -p turndown-cdp --allow-dirty
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
   build-and-publish:
-    name: Build and Publish
+    name: Build and Publish - ${{ matrix.package }}
     needs: release-please
     if: ${{ needs.release-please.outputs.release_created }}
     runs-on: ${{ matrix.os }}

@@ -8,7 +8,8 @@ license.workspace = true
 crate-type = ["cdylib"]
 
 [dependencies]
-turndown = { path = "../turndown" }
+turndown-cdp = { path = "../turndown-cdp" }
+scraper.workspace = true
 napi = { version = "2", default-features = false, features = ["napi4"] }
 napi-derive = "2"
 

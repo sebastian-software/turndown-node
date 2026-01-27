@@ -1,11 +1,46 @@
 #![deny(clippy::all)]
 
 use napi_derive::napi;
+use scraper::{ElementRef, Html, Node as ScraperNode};
 
-use turndown::{
-    CodeBlockStyle, Filter, HeadingStyle, LinkReferenceStyle, LinkStyle, Rule,
+use turndown_cdp::{
+    CodeBlockStyle, Filter, HeadingStyle, LinkReferenceStyle, LinkStyle, Node, Rule,
     TurndownOptions, TurndownService as RustTurndownService,
 };
+
+/// Parse an HTML string into a turndown Node tree
+fn parse_html(html: &str) -> Node {
+    let document = Html::parse_fragment(html);
+    scraper_to_node(document.root_element())
+}
+
+/// Convert a scraper ElementRef to turndown Node
+fn scraper_to_node(element: ElementRef) -> Node {
+    let tag = element.value().name();
+    let attrs: Vec<(&str, &str)> = element.value().attrs().collect();
+
+    let mut node = if attrs.is_empty() {
+        Node::element(tag)
+    } else {
+        Node::element_with_attrs(tag, attrs)
+    };
+
+    for child in element.children() {
+        match child.value() {
+            ScraperNode::Text(text) => {
+                node.add_child(Node::text(&text.text));
+            }
+            ScraperNode::Element(_) => {
+                if let Some(child_element) = ElementRef::wrap(child) {
+                    node.add_child(scraper_to_node(child_element));
+                }
+            }
+            _ => {}
+        }
+    }
+
+    node
+}
 
 #[napi(object)]
 pub struct Options {
@@ -100,8 +135,9 @@ impl TurndownService {
     /// Convert HTML to Markdown
     #[napi]
     pub fn turndown(&self, html: String) -> napi::Result<String> {
+        let node = parse_html(&html);
         self.inner
-            .turndown_html(&html)
+            .turndown(&node)
             .map_err(|e| napi::Error::from_reason(e.to_string()))
     }
 

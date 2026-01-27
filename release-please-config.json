@@ -1,0 +1,42 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "packages": {
+    ".": {
+      "release-type": "node",
+      "component": "turndown-node",
+      "changelog-path": "CHANGELOG.md",
+      "extra-files": [
+        {
+          "type": "json",
+          "path": "packages/turndown-node/package.json",
+          "jsonpath": "$.version"
+        },
+        {
+          "type": "json",
+          "path": "packages/darwin-arm64/package.json",
+          "jsonpath": "$.version"
+        },
+        {
+          "type": "json",
+          "path": "packages/linux-x64-gnu/package.json",
+          "jsonpath": "$.version"
+        },
+        {
+          "type": "json",
+          "path": "packages/linux-arm64-gnu/package.json",
+          "jsonpath": "$.version"
+        },
+        {
+          "type": "json",
+          "path": "packages/win32-x64-msvc/package.json",
+          "jsonpath": "$.version"
+        },
+        "crates/turndown-cdp/Cargo.toml",
+        "crates/turndown-napi/Cargo.toml",
+        "Cargo.toml"
+      ]
+    }
+  },
+  "bump-minor-pre-major": true,
+  "bump-patch-for-minor-pre-major": true
+}

@@ -1,23 +1,23 @@
-//! # turndown
+//! # turndown-cdp
 //!
-//! Convert DOM nodes to Markdown.
+//! Convert CDP-style DOM nodes to Markdown.
 //!
 //! This is a Rust implementation inspired by [turndown](https://github.com/mixmark-io/turndown),
 //! providing a similar API for converting DOM trees to Markdown.
 //!
 //! ## Design
 //!
-//! Unlike the original turndown which parses HTML strings, this library accepts
-//! a CDP-style DOM Node structure. This design allows:
+//! This library accepts a CDP-style DOM Node structure (matching Chrome DevTools
+//! Protocol). This design allows:
 //!
 //! - **Zero parsing overhead**: When DOM is already available (e.g., from CDP/chromiumoxide)
 //! - **Parser agnostic**: Any HTML parser can convert to the Node structure
-//! - **Smaller binaries**: No HTML parser bundled by default
+//! - **Minimal dependencies**: No HTML parser bundled
 //!
-//! ## Example (Node-based)
+//! ## Example
 //!
 //! ```rust
-//! use turndown::{TurndownService, Node};
+//! use turndown_cdp::{TurndownService, Node};
 //!
 //! let service = TurndownService::new();
 //!
@@ -28,26 +28,12 @@
 //! let markdown = service.turndown(&h1).unwrap();
 //! assert!(markdown.contains("Hello World"));
 //! ```
-//!
-//! ## Example (HTML string)
-//!
-//! ```rust
-//! use turndown::TurndownService;
-//!
-//! let service = TurndownService::new();
-//! let markdown = service.turndown_html("<h1>Hello World</h1>").unwrap();
-//! assert!(markdown.contains("Hello World"));
-//! ```
 
-#[cfg(feature = "html")]
-pub mod html;
 pub mod node;
 mod rules;
 mod service;
 mod utilities;
 
-#[cfg(feature = "html")]
-pub use html::parse_html;
 pub use node::{Node, NodeRef, NodeType};
 pub use rules::{Filter, Rule, Rules};
 pub use service::{
