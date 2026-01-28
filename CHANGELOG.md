@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.11](https://github.com/sebastian-software/turndown-node/compare/turndown-node-v0.0.10...turndown-node-v0.0.11) (2026-01-28)
+
+
+### Bug Fixes
+
+* handle inline elements at root level in HTML parser ([024f5ec](https://github.com/sebastian-software/turndown-node/commit/024f5ec14b3f41c2926f1133cd96f8b47b651260))
+* use workspace dependency for turndown-core ([02594fc](https://github.com/sebastian-software/turndown-node/commit/02594fc46d08582cc7f35a0b35f1efb2986d8d15))
+
 ## [0.0.10](https://github.com/sebastian-software/turndown-node/compare/turndown-node-v0.0.9...turndown-node-v0.0.10) (2026-01-28)
 
 
