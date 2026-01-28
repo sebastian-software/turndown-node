@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.0.9](https://github.com/sebastian-software/turndown-node/compare/turndown-node-v0.0.8...turndown-node-v0.0.9) (2026-01-28)
+
+
+### Features
+
+* add benchmark suite comparing to turndown JS ([f74de35](https://github.com/sebastian-software/turndown-node/commit/f74de351a834ca78e6f51063100380f4593888bc))
+* add turndown-core crate with Markdown AST ([8e6e517](https://github.com/sebastian-software/turndown-node/commit/8e6e5175c281467296360ec3a171675e97341a01))
+* implement lol_html streaming parser ([35f2740](https://github.com/sebastian-software/turndown-node/commit/35f2740e60137464c767d8929667d842906bc153))
+
 ## [0.0.8](https://github.com/sebastian-software/turndown-node/compare/turndown-node-v0.0.7...turndown-node-v0.0.8) (2026-01-27)
 
 
