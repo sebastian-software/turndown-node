@@ -156,11 +156,23 @@ jobs:
           name: bindings-${{ matrix.package }}
           path: packages/${{ matrix.package }}/
 
+      - name: List downloaded files
+        shell: bash
+        run: |
+          echo "Contents of packages/${{ matrix.package }}:"
+          ls -la packages/${{ matrix.package }}/
+
       - name: Rename artifact
         shell: bash
         run: |
           cd packages/${{ matrix.package }}
           mv *.node turndown.${{ matrix.package }}.node || true
+
+      - name: List after rename
+        shell: bash
+        run: |
+          echo "Contents after rename:"
+          ls -la packages/${{ matrix.package }}/
 
       - name: Run parity tests
         run: pnpm test:js
