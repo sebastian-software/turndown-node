@@ -1,0 +1,12 @@
+[package]
+name = "turndown-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+description = "Core Markdown AST and serialization for turndown"
+keywords = ["markdown", "ast", "serialization"]
+categories = ["text-processing"]
+
+[dependencies]
