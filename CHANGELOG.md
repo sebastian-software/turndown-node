@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.12](https://github.com/sebastian-software/turndown-node/compare/turndown-node-v0.0.11...turndown-node-v0.0.12) (2026-01-28)
+
+
+### Bug Fixes
+
+* achieve output parity with turndown JS for benchmarks ([51ce73c](https://github.com/sebastian-software/turndown-node/commit/51ce73ce12dd65392c1daf417a2ca59ddfbffd61))
+
 ## [0.0.11](https://github.com/sebastian-software/turndown-node/compare/turndown-node-v0.0.10...turndown-node-v0.0.11) (2026-01-28)
 
 
