@@ -182,12 +182,13 @@ jobs:
             const TurndownNode = require('turndown-node');
             const service = new TurndownNode();
             console.log('Testing turndown-node...');
-            console.log('Input: <em>test</em>');
-            console.log('Output:', service.turndown('<em>test</em>'));
-            console.log('Input: <strong>test</strong>');
-            console.log('Output:', service.turndown('<strong>test</strong>'));
-            console.log('Input: <code>test</code>');
-            console.log('Output:', service.turndown('<code>test</code>'));
+            // Test with different HTML structures
+            console.log('Test 1: <em>test</em>');
+            console.log('Output:', JSON.stringify(service.turndown('<em>test</em>')));
+            console.log('Test 2: <p><em>test</em></p>');
+            console.log('Output:', JSON.stringify(service.turndown('<p><em>test</em></p>')));
+            console.log('Test 3: <html><body><em>test</em></body></html>');
+            console.log('Output:', JSON.stringify(service.turndown('<html><body><em>test</em></body></html>')));
           "
 
       - name: Run parity tests
