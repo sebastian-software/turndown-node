@@ -2,9 +2,12 @@
 
 [![CI](https://github.com/sebastian-software/turndown-node/actions/workflows/ci.yml/badge.svg)](https://github.com/sebastian-software/turndown-node/actions/workflows/ci.yml)
 [![npm version](https://img.shields.io/npm/v/turndown-node.svg)](https://www.npmjs.com/package/turndown-node)
+[![npm downloads](https://img.shields.io/npm/dm/turndown-node.svg)](https://www.npmjs.com/package/turndown-node)
 [![crates.io](https://img.shields.io/crates/v/turndown-cdp.svg)](https://crates.io/crates/turndown-cdp)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Node.js](https://img.shields.io/badge/Node.js-%3E%3D18-green.svg)](https://nodejs.org/)
 
-Convert HTML to Markdown. Available as a native Node.js module and as a Rust crate.
+Convert HTML to Markdown. Native Node.js bindings powered by Rust for maximum performance.
 
 ## Packages
 
@@ -32,6 +35,19 @@ const markdown = turndownService.turndown("<h1>Hello World</h1>");
 **100% compatible** with [turndown](https://github.com/mixmark-io/turndown) v7.2.0 - drop-in replacement with identical output.
 
 [Full Node.js documentation →](packages/turndown-node/README.md)
+
+## Performance
+
+turndown-node is significantly faster than the JavaScript implementation thanks to native Rust code:
+
+| Input Size         | turndown-node | turndown (JS) | Speedup   |
+| ------------------ | ------------- | ------------- | --------- |
+| 35 bytes (simple)  | 306,705 ops/s | 31,124 ops/s  | **9.85x** |
+| 341 bytes (medium) | 48,957 ops/s  | 9,455 ops/s   | **5.18x** |
+| 2 KB (complex)     | 9,651 ops/s   | 2,707 ops/s   | **3.57x** |
+| 100 KB (large)     | 199 ops/s     | 61 ops/s      | **3.26x** |
+
+> Benchmarks run on Apple M1, Node.js v24. Run `pnpm --filter benchmarks bench` to reproduce.
 
 ## Rust Usage
 
