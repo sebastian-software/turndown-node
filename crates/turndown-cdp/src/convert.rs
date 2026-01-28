@@ -36,23 +36,6 @@ fn flatten_document(block: Block) -> Block {
 #[derive(Default, Clone)]
 struct Context {
     in_pre: bool,
-    in_code: bool,
-}
-
-impl Context {
-    fn enter_pre(&self) -> Self {
-        Self {
-            in_pre: true,
-            ..self.clone()
-        }
-    }
-
-    fn enter_code(&self) -> Self {
-        Self {
-            in_code: true,
-            ..self.clone()
-        }
-    }
 }
 
 /// Convert children of a node to blocks
@@ -340,7 +323,7 @@ fn collect_inlines(node: &Node, options: &Options, ctx: &Context) -> Vec<Inline>
         match child.node_type {
             NodeType::Text => {
                 let text = child.node_value.as_deref().unwrap_or("");
-                if ctx.in_pre || ctx.in_code {
+                if ctx.in_pre {
                     inlines.push(Inline::Text(text.to_string()));
                 } else {
                     let collapsed = collapse_whitespace(text);

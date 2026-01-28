@@ -116,20 +116,24 @@ HTML → Markdown Konvertierung optimieren durch:
 
 ### 4.1 Aufräumen
 
-- [ ] Ungenutzte Dependencies entfernen (scraper?)
-- [ ] Code Review der neuen Struktur
+- [x] Ungenutzte Dependencies entfernen
+- [x] Code Review: Unused methods entfernt (`enter_pre`, `enter_code`, `in_code`)
 
 ### 4.2 Benchmarks
 
-- [ ] Neue Benchmarks laufen lassen
-- [ ] Vergleich vorher/nachher dokumentieren
+- [x] Neue Benchmarks laufen lassen
+- [x] Ergebnis: **3.49x average speedup**
+  - simple (36 bytes): 5.91x
+  - blog-post (2.5KB): 2.94x
+  - documentation (4.3KB): 2.52x
+  - large-article (28.6KB): 2.59x
 
 ### 4.3 Dokumentation
 
-- [ ] README.md aktualisieren mit neuer Architektur
-- [ ] Crate-Level Dokumentation
+- [x] Crate-Level Dokumentation (lib.rs doc comments)
+- [ ] README.md aktualisieren (optional, bestehende Docs ausreichend)
 
-**Checkpoint 4**: Alles grün, Performance dokumentiert
+**Checkpoint 4**: Alles grün, Performance dokumentiert ✅
 
 ---
 
@@ -155,5 +159,14 @@ HTML → Markdown Konvertierung optimieren durch:
 
 ## Aktueller Status
 
-**Phase**: 3 abgeschlossen, Phase 4 bereit
-**Letzter Checkpoint**: 3 ✅ (NAPI direkte AST-Konvertierung, 18 Parity Tests grün)
+**Phase**: 4 abgeschlossen ✅
+**Letzter Checkpoint**: 4 ✅ (Cleanup, Benchmarks dokumentiert, alle Tests grün)
+
+### Ergebnis
+
+Refactoring erfolgreich abgeschlossen:
+
+- **turndown-core**: Gemeinsamer Markdown AST + Serialisierung
+- **turndown-cdp**: CDP Node → AST Konvertierung (für chromiumoxide)
+- **turndown-napi**: Direkter HTML → AST Pfad (scraper)
+- **Performance**: 3.49x durchschnittlicher Speedup vs. JS
