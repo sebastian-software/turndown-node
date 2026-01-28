@@ -177,6 +177,7 @@ jobs:
       - name: Debug native module
         shell: bash
         run: |
+          cd tests
           node -e "
             const TurndownNode = require('turndown-node');
             const service = new TurndownNode();
