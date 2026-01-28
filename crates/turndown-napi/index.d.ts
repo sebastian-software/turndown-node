@@ -18,7 +18,7 @@ export declare class TurndownService {
   constructor(options?: Options | undefined | null);
   /** Convert HTML to Markdown */
   turndown(html: string): string;
-  /** Add a custom rule */
+  /** Add a custom rule (currently no-op, rules system simplified) */
   addRule(key: string, filter: string): this;
   /** Keep elements matching the filter as HTML */
   keep(filter: Array<string>): this;
