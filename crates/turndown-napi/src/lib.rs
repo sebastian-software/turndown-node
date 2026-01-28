@@ -1,6 +1,6 @@
 #![deny(clippy::all)]
 
-mod lol_streaming;
+mod tl_streaming;
 
 use napi_derive::napi;
 use turndown_core::{
@@ -97,11 +97,11 @@ impl TurndownService {
         Self { options }
     }
 
-    /// Convert HTML to Markdown using lol_html streaming parser
+    /// Convert HTML to Markdown using tl parser
     #[napi]
     pub fn turndown(&self, html: String) -> napi::Result<String> {
-        // Use lol_html streaming conversion: HTML → AST → Markdown
-        let ast = lol_streaming::html_to_ast(&html, &self.options);
+        // Use tl conversion: HTML → AST → Markdown
+        let ast = tl_streaming::html_to_ast(&html, &self.options);
         let result = turndown_core::serialize(&ast, &self.options);
         Ok(result)
     }

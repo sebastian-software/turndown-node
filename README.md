@@ -42,11 +42,15 @@ turndown-node is significantly faster than the JavaScript implementation thanks 
 
 | Fixture       | Size     | turndown-node | turndown (JS) | Speedup   |
 | ------------- | -------- | ------------- | ------------- | --------- |
-| simple        | 36 bytes | 314,578 ops/s | 52,805 ops/s  | **5.96x** |
-| blog-post     | 2.5 KB   | 9,431 ops/s   | 3,283 ops/s   | **2.87x** |
-| documentation | 4.3 KB   | 3,942 ops/s   | 1,566 ops/s   | **2.52x** |
+| simple        | 36 bytes | 315,048 ops/s | 54,320 ops/s  | **5.80x** |
+| blog-post     | 2.5 KB   | 9,445 ops/s   | 3,287 ops/s   | **2.87x** |
+| documentation | 4.3 KB   | 3,978 ops/s   | 1,546 ops/s   | **2.57x** |
+| large-article | 28.6 KB  | 786 ops/s     | 304 ops/s     | **2.59x** |
+| large-100kb   | 188.8 KB | 97 ops/s      | 28 ops/s      | **3.48x** |
 
-> Benchmarks run on Apple M1 Ultra, Node.js v24. Run `pnpm --filter benchmarks bench` to reproduce.
+**Average speedup: 3.46x faster**
+
+> Benchmarks run on Apple M-Series, Node.js v24. Run `node benchmarks/benchmark.js` to reproduce.
 
 ## Rust Usage
 
@@ -77,18 +81,18 @@ The Rust crate uses a **CDP-style Node structure** (Chrome DevTools Protocol), m
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                   turndown-cdp (Rust)                   │
-│              Pure Node → Markdown conversion            │
-│                   No HTML parser included               │
-└─────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                        turndown-core                            │
+│              Markdown AST types + Serialization                 │
+└─────────────────────────────────────────────────────────────────┘
                             ▲
                             │
               ┌─────────────┴─────────────┐
               │                           │
    ┌──────────┴──────────┐     ┌──────────┴──────────┐
-   │   turndown-napi     │     │   Your Rust App     │
-   │   (HTML parsing)    │     │   (chromiumoxide)   │
+   │   turndown-napi     │     │    turndown-cdp     │
+   │   HTML → AST        │     │   CDP Node → AST    │
+   │   (tl parser)       │     │   (for Rust apps)   │
    └──────────┬──────────┘     └─────────────────────┘
               │
    ┌──────────┴──────────┐
@@ -96,6 +100,8 @@ The Rust crate uses a **CDP-style Node structure** (Chrome DevTools Protocol), m
    │   (npm package)     │
    └─────────────────────┘
 ```
+
+See [Architecture Decision Records](docs/adr/) for design rationale.
 
 ## Supported Platforms
 
@@ -129,6 +135,9 @@ pnpm test
 
 # Run Rust tests
 cargo test --workspace
+
+# Run benchmarks
+node benchmarks/benchmark.js
 ```
 
 ### Project Structure
@@ -136,15 +145,18 @@ cargo test --workspace
 ```
 turndown-node/
 ├── crates/
-│   ├── turndown-cdp/       # Core Rust library (crates.io)
-│   └── turndown-napi/      # NAPI-RS bindings + HTML parsing
+│   ├── turndown-core/     # Shared Markdown AST + serialization
+│   ├── turndown-cdp/      # CDP Node → AST (crates.io)
+│   └── turndown-napi/     # HTML → AST with NAPI-RS bindings
 ├── packages/
-│   ├── turndown-node/      # Main npm package
-│   ├── darwin-arm64/       # Platform-specific bindings
+│   ├── turndown-node/     # Main npm package
+│   ├── darwin-arm64/      # Platform-specific bindings
 │   ├── linux-x64-gnu/
 │   ├── linux-arm64-gnu/
 │   └── win32-x64-msvc/
-└── tests/                  # Jest parity tests
+├── benchmarks/            # Performance benchmarks
+├── tests/                 # Jest parity tests
+└── docs/adr/              # Architecture Decision Records
 ```
 
 ## License

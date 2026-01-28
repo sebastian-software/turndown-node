@@ -3,97 +3,120 @@
 //! Converts Markdown AST nodes into Markdown text.
 
 use crate::ast::{inlines_text_len, Block, Inline, ListItem};
-use crate::options::{CodeBlockStyle, HeadingStyle, LinkStyle, Options};
+use crate::options::{CodeBlockStyle, HeadingStyle, Options};
 
 /// Serialize a block to Markdown string
 pub fn serialize(block: &Block, options: &Options) -> String {
-    let mut output = serialize_block(block, options, 0);
+    // Estimate capacity: ~2x input for markdown overhead
+    let mut output = String::with_capacity(4096);
+    serialize_block(block, options, 0, &mut output);
 
-    // Post-process: collapse multiple newlines
-    output = collapse_newlines(&output);
-
-    // Trim leading/trailing newlines
-    output.trim_matches('\n').to_string()
+    // Post-process: collapse multiple newlines and trim
+    collapse_and_trim(&mut output);
+    output
 }
 
-fn serialize_block(block: &Block, options: &Options, depth: usize) -> String {
+fn serialize_block(block: &Block, options: &Options, depth: usize, out: &mut String) {
     match block {
-        Block::Document(blocks) => serialize_blocks(blocks, options, depth),
+        Block::Document(blocks) => serialize_blocks(blocks, options, depth, out),
 
-        Block::Heading { level, content } => serialize_heading(*level, content, options),
+        Block::Heading { level, content } => serialize_heading(*level, content, options, out),
 
         Block::Paragraph(inlines) => {
-            let text = serialize_inlines(inlines, options);
-            if text.trim().is_empty() {
-                String::new()
+            let start_len = out.len();
+            serialize_inlines(inlines, options, out);
+            if out[start_len..].trim().is_empty() {
+                out.truncate(start_len);
             } else {
-                format!("{}\n\n", text)
+                out.push_str("\n\n");
             }
         }
 
         Block::BlockQuote(blocks) => {
-            let content = serialize_blocks(blocks, options, depth);
-            let lines: Vec<&str> = content.trim_end().lines().collect();
-            let quoted = lines
-                .iter()
-                .map(|line| {
-                    if line.is_empty() {
-                        ">".to_string()
-                    } else {
-                        format!("> {}", line)
-                    }
-                })
-                .collect::<Vec<_>>()
-                .join("\n");
-            format!("{}\n\n", quoted)
+            let start_len = out.len();
+            serialize_blocks(blocks, options, depth, out);
+
+            // Process the content we just wrote to add > prefixes
+            let content = out[start_len..].trim_end().to_string();
+            out.truncate(start_len);
+
+            for (i, line) in content.lines().enumerate() {
+                if i > 0 {
+                    out.push('\n');
+                }
+                out.push('>');
+                if !line.is_empty() {
+                    out.push(' ');
+                    out.push_str(line);
+                }
+            }
+            out.push_str("\n\n");
         }
 
         Block::List {
             ordered,
             start,
             items,
-        } => serialize_list(*ordered, *start, items, options, depth),
+        } => serialize_list(*ordered, *start, items, options, depth, out),
 
         Block::CodeBlock {
             language,
             code,
             fenced,
-        } => serialize_code_block(language.as_deref(), code, *fenced, options),
+        } => serialize_code_block(language.as_deref(), code, *fenced, options, out),
 
-        Block::ThematicBreak => format!("{}\n\n", options.hr),
+        Block::ThematicBreak => {
+            out.push_str(&options.hr);
+            out.push_str("\n\n");
+        }
 
-        Block::Table { headers, rows } => serialize_table(headers, rows, options),
+        Block::Table { headers, rows } => serialize_table(headers, rows, options, out),
 
-        Block::HtmlBlock(html) => format!("{}\n\n", html),
-    }
-}
-
-fn serialize_blocks(blocks: &[Block], options: &Options, depth: usize) -> String {
-    let mut result = String::new();
-    for block in blocks {
-        if !block.is_blank() {
-            result.push_str(&serialize_block(block, options, depth));
+        Block::HtmlBlock(html) => {
+            out.push_str(html);
+            out.push_str("\n\n");
         }
     }
-    result
 }
 
-fn serialize_heading(level: u8, content: &[Inline], options: &Options) -> String {
-    let text = serialize_inlines(content, options);
-
-    if text.trim().is_empty() {
-        return String::new();
+fn serialize_blocks(blocks: &[Block], options: &Options, depth: usize, out: &mut String) {
+    for block in blocks {
+        if !block.is_blank() {
+            serialize_block(block, options, depth, out);
+        }
     }
+}
+
+fn serialize_heading(level: u8, content: &[Inline], options: &Options, out: &mut String) {
+    let start_len = out.len();
+    serialize_inlines(content, options, out);
+
+    if out[start_len..].trim().is_empty() {
+        out.truncate(start_len);
+        return;
+    }
+
+    let text_len = out.len() - start_len;
 
     match options.heading_style {
         HeadingStyle::Setext if level <= 2 => {
+            out.push('\n');
             let underline = if level == 1 { '=' } else { '-' };
-            let underline_str: String = std::iter::repeat(underline).take(text.len()).collect();
-            format!("{}\n{}\n\n", text, underline_str)
+            for _ in 0..text_len {
+                out.push(underline);
+            }
+            out.push_str("\n\n");
         }
         _ => {
-            let hashes: String = std::iter::repeat('#').take(level as usize).collect();
-            format!("{} {}\n\n", hashes, text)
+            // Need to prepend hashes - shift content
+            let text = out[start_len..].to_string();
+            out.truncate(start_len);
+            for _ in 0..level {
+                out.push('#');
+            }
+            out.push(' ');
+            out.push_str(&text);
+            out.push_str("\n\n");
         }
     }
 }
@@ -104,65 +127,77 @@ fn serialize_list(
     items: &[ListItem],
     options: &Options,
     depth: usize,
-) -> String {
-    let mut result = String::new();
+    out: &mut String,
+) {
     let indent = "    ".repeat(depth);
 
     for (i, item) in items.iter().enumerate() {
-        let prefix = if ordered {
-            format!("{}.  ", start + i as u32)
+        out.push_str(&indent);
+
+        if ordered {
+            // Write number prefix
+            let num = start + i as u32;
+            out.push_str(&num.to_string());
+            out.push_str(".  ");
         } else {
-            format!("{}   ", options.bullet_list_marker)
+            out.push(options.bullet_list_marker);
+            out.push_str("   ");
+        }
+
+        let prefix_len = if ordered {
+            (start + i as u32).to_string().len() + 3
+        } else {
+            4
         };
 
-        let content = serialize_list_item(item, options, depth + 1);
-        let content = content.trim();
-
-        // Indent continuation lines
-        let mut lines: Vec<&str> = content.lines().collect();
-        if !lines.is_empty() {
-            let first = lines.remove(0);
-            result.push_str(&indent);
-            result.push_str(&prefix);
-            result.push_str(first);
-            result.push('\n');
-
-            for line in lines {
-                result.push_str(&indent);
-                result.push_str(&" ".repeat(prefix.len()));
-                result.push_str(line);
-                result.push('\n');
-            }
-        }
+        serialize_list_item(item, options, depth + 1, prefix_len, &indent, out);
     }
 
-    result.push('\n');
-    result
+    out.push('\n');
 }
 
-fn serialize_list_item(item: &ListItem, options: &Options, depth: usize) -> String {
-    let mut result = String::new();
+fn serialize_list_item(
+    item: &ListItem,
+    options: &Options,
+    depth: usize,
+    prefix_len: usize,
+    indent: &str,
+    out: &mut String,
+) {
+    let start_len = out.len();
 
     for (i, block) in item.content.iter().enumerate() {
         match block {
             Block::Paragraph(inlines) => {
-                let text = serialize_inlines(inlines, options);
-                result.push_str(&text);
+                serialize_inlines(inlines, options, out);
                 if i < item.content.len() - 1 {
-                    result.push_str("\n\n");
+                    out.push_str("\n\n");
                 }
             }
             Block::List { .. } => {
-                result.push('\n');
-                result.push_str(&serialize_block(block, options, depth));
+                out.push('\n');
+                serialize_block(block, options, depth, out);
             }
             _ => {
-                result.push_str(&serialize_block(block, options, depth));
+                serialize_block(block, options, depth, out);
             }
         }
     }
 
-    result
+    // Indent continuation lines
+    let content = out[start_len..].to_string();
+    out.truncate(start_len);
+
+    let continuation_indent: String = std::iter::repeat(' ').take(prefix_len).collect();
+
+    for (i, line) in content.lines().enumerate() {
+        if i > 0 {
+            out.push_str(indent);
+            out.push_str(&continuation_indent);
+        }
+        out.push_str(line);
+        out.push('\n');
+    }
 }
 
 fn serialize_code_block(
@@ -170,16 +205,25 @@ fn serialize_code_block(
     code: &str,
     fenced: bool,
     options: &Options,
-) -> String {
+    out: &mut String,
+) {
     let use_fenced = fenced || options.code_block_style == CodeBlockStyle::Fenced;
 
     if use_fenced {
-        let lang = language.unwrap_or("");
-        format!("{}{}\n{}\n{}\n\n", options.fence, lang, code, options.fence)
+        out.push_str(&options.fence);
+        out.push_str(language.unwrap_or(""));
+        out.push('\n');
+        out.push_str(code);
+        out.push('\n');
+        out.push_str(&options.fence);
+        out.push_str("\n\n");
     } else {
-        // Indented code block
-        let indented: Vec<String> = code.lines().map(|line| format!("    {}", line)).collect();
-        format!("{}\n\n", indented.join("\n"))
+        for line in code.lines() {
+            out.push_str("    ");
+            out.push_str(line);
+            out.push('\n');
+        }
+        out.push('\n');
     }
 }
 
@@ -187,9 +231,10 @@ fn serialize_table(
     headers: &[Vec<Inline>],
     rows: &[Vec<Vec<Inline>>],
     options: &Options,
-) -> String {
+    out: &mut String,
+) {
     if headers.is_empty() {
-        return String::new();
+        return;
     }
 
     // Calculate column widths
@@ -209,90 +254,104 @@ fn serialize_table(
         *w = (*w).max(3);
     }
 
-    let mut result = String::new();
-
     // Header row
-    result.push('|');
+    out.push('|');
     for (i, header) in headers.iter().enumerate() {
-        let text = serialize_inlines(header, options);
-        let padding = widths.get(i).copied().unwrap_or(3) - text.len();
-        result.push(' ');
-        result.push_str(&text);
-        result.push_str(&" ".repeat(padding));
-        result.push_str(" |");
+        let start = out.len();
+        out.push(' ');
+        serialize_inlines(header, options, out);
+        let text_len = out.len() - start - 1;
+        let padding = widths.get(i).copied().unwrap_or(3).saturating_sub(text_len);
+        for _ in 0..padding {
+            out.push(' ');
+        }
+        out.push_str(" |");
     }
-    result.push('\n');
+    out.push('\n');
 
     // Separator row
-    result.push('|');
+    out.push('|');
     for &width in &widths[..col_count] {
-        result.push(' ');
-        result.push_str(&"-".repeat(width));
-        result.push_str(" |");
+        out.push(' ');
+        for _ in 0..width {
+            out.push('-');
+        }
+        out.push_str(" |");
     }
-    result.push('\n');
+    out.push('\n');
 
     // Data rows
     for row in rows {
-        result.push('|');
+        out.push('|');
         for (i, cell) in row.iter().enumerate() {
-            let text = serialize_inlines(cell, options);
+            let start = out.len();
+            out.push(' ');
+            serialize_inlines(cell, options, out);
+            let text_len = out.len() - start - 1;
             let width = widths.get(i).copied().unwrap_or(3);
-            let padding = width.saturating_sub(text.len());
-            result.push(' ');
-            result.push_str(&text);
-            result.push_str(&" ".repeat(padding));
-            result.push_str(" |");
+            let padding = width.saturating_sub(text_len);
+            for _ in 0..padding {
+                out.push(' ');
+            }
+            out.push_str(" |");
         }
-        result.push('\n');
+        out.push('\n');
     }
 
-    result.push('\n');
-    result
+    out.push('\n');
 }
 
-fn serialize_inlines(inlines: &[Inline], options: &Options) -> String {
-    let mut result = String::new();
+fn serialize_inlines(inlines: &[Inline], options: &Options, out: &mut String) {
     for inline in inlines {
-        result.push_str(&serialize_inline(inline, options));
+        serialize_inline(inline, options, out);
     }
-    result
 }
 
-fn serialize_inline(inline: &Inline, options: &Options) -> String {
+fn serialize_inline(inline: &Inline, options: &Options, out: &mut String) {
     match inline {
-        Inline::Text(text) => text.clone(),
+        Inline::Text(text) => out.push_str(text),
 
         Inline::Strong(content) => {
-            let inner = serialize_inlines(content, options);
-            if inner.trim().is_empty() {
-                String::new()
+            let start = out.len();
+            serialize_inlines(content, options, out);
+            if out[start..].trim().is_empty() {
+                out.truncate(start);
             } else {
-                format!("{}{}{}", options.strong_delimiter, inner, options.strong_delimiter)
+                let inner = out[start..].to_string();
+                out.truncate(start);
+                out.push_str(&options.strong_delimiter);
+                out.push_str(&inner);
+                out.push_str(&options.strong_delimiter);
             }
         }
 
         Inline::Emphasis(content) => {
-            let inner = serialize_inlines(content, options);
-            if inner.trim().is_empty() {
-                String::new()
+            let start = out.len();
+            serialize_inlines(content, options, out);
+            if out[start..].trim().is_empty() {
+                out.truncate(start);
             } else {
-                format!("{}{}{}", options.em_delimiter, inner, options.em_delimiter)
+                let inner = out[start..].to_string();
+                out.truncate(start);
+                out.push(options.em_delimiter);
+                out.push_str(&inner);
+                out.push(options.em_delimiter);
             }
         }
 
         Inline::Code(code) => {
-            if code.is_empty() {
-                String::new()
-            } else {
-                // Handle backticks in code
+            if !code.is_empty() {
                 let backticks = if code.contains('`') { "``" } else { "`" };
                 let space = if code.starts_with('`') || code.ends_with('`') {
                     " "
                 } else {
                     ""
                 };
-                format!("{}{}{}{}{}", backticks, space, code, space, backticks)
+                out.push_str(backticks);
+                out.push_str(space);
+                out.push_str(code);
+                out.push_str(space);
+                out.push_str(backticks);
             }
         }
 
@@ -301,55 +360,68 @@ fn serialize_inline(inline: &Inline, options: &Options) -> String {
             url,
             title,
         } => {
-            let text = serialize_inlines(content, options);
-            match options.link_style {
-                LinkStyle::Inlined => {
-                    if let Some(t) = title {
-                        format!("[{}]({} \"{}\")", text, url, t)
-                    } else {
-                        format!("[{}]({})", text, url)
-                    }
-                }
-                LinkStyle::Referenced => {
-                    // For now, just use inline style
-                    // TODO: Collect references and output at end
-                    format!("[{}]({})", text, url)
-                }
+            out.push('[');
+            serialize_inlines(content, options, out);
+            out.push_str("](");
+            out.push_str(url);
+            if let Some(t) = title {
+                out.push_str(" \"");
+                out.push_str(t);
+                out.push('"');
             }
+            out.push(')');
         }
 
         Inline::Image { alt, url, title } => {
+            out.push_str("![");
+            out.push_str(alt);
+            out.push_str("](");
+            out.push_str(url);
             if let Some(t) = title {
-                format!("![{}]({} \"{}\")", alt, url, t)
-            } else {
-                format!("![{}]({})", alt, url)
+                out.push_str(" \"");
+                out.push_str(t);
+                out.push('"');
             }
+            out.push(')');
         }
 
-        Inline::LineBreak => "  \n".to_string(),
+        Inline::LineBreak => out.push_str("  \n"),
 
-        Inline::HtmlInline(html) => html.clone(),
+        Inline::HtmlInline(html) => out.push_str(html),
     }
 }
 
-/// Collapse multiple consecutive newlines into at most two
-fn collapse_newlines(input: &str) -> String {
-    let mut result = String::with_capacity(input.len());
+/// Collapse multiple consecutive newlines into at most two, in place
+fn collapse_and_trim(s: &mut String) {
+    let bytes = s.as_bytes();
+    let mut result = Vec::with_capacity(bytes.len());
     let mut newline_count = 0;
+    let mut start = 0;
+    let mut end = bytes.len();
 
-    for c in input.chars() {
-        if c == '\n' {
+    // Find start (skip leading newlines)
+    while start < bytes.len() && bytes[start] == b'\n' {
+        start += 1;
+    }
+
+    // Find end (skip trailing newlines)
+    while end > start && bytes[end - 1] == b'\n' {
+        end -= 1;
+    }
+
+    for &b in &bytes[start..end] {
+        if b == b'\n' {
             newline_count += 1;
             if newline_count <= 2 {
-                result.push(c);
+                result.push(b);
             }
         } else {
             newline_count = 0;
-            result.push(c);
+            result.push(b);
         }
     }
 
-    result
+    *s = String::from_utf8(result).unwrap_or_default();
 }
 
 #[cfg(test)]
