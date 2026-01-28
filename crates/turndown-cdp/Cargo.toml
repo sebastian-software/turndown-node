@@ -11,5 +11,5 @@ categories = ["text-processing", "web-programming"]
 readme = "README.md"
 
 [dependencies]
-turndown-core = { path = "../turndown-core", version = "0.0.9" }
+turndown-core.workspace = true
 thiserror.workspace = true

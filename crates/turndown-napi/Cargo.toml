@@ -8,7 +8,7 @@ license.workspace = true
 crate-type = ["cdylib"]
 
 [dependencies]
-turndown-core = { path = "../turndown-core", version = "0.0.9" }
+turndown-core.workspace = true
 tl = "0.7"
 smallvec = "1.13"
 napi = { version = "2", default-features = false, features = ["napi4"] }
