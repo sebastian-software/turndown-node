@@ -29,17 +29,12 @@
 //! assert!(markdown.contains("Hello World"));
 //! ```
 
+mod convert;
 pub mod node;
-mod rules;
 mod service;
-mod utilities;
 
 pub use node::{Node, NodeRef, NodeType};
-pub use rules::{Filter, Rule, Rules};
-pub use service::{
-    CodeBlockStyle, HeadingStyle, LinkReferenceStyle, LinkStyle, TurndownOptions, TurndownService,
-};
-pub use utilities::*;
+pub use service::{CodeBlockStyle, HeadingStyle, LinkReferenceStyle, LinkStyle, TurndownOptions, TurndownService};
 
 /// Error type for turndown operations
 #[derive(Debug, thiserror::Error)]

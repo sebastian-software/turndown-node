@@ -11,7 +11,5 @@ categories = ["text-processing", "web-programming"]
 readme = "README.md"
 
 [dependencies]
-regex.workspace = true
-once_cell.workspace = true
+turndown-core = { path = "../turndown-core" }
 thiserror.workspace = true
-indexmap.workspace = true

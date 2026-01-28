@@ -4,7 +4,7 @@ use napi_derive::napi;
 use scraper::{ElementRef, Html, Node as ScraperNode};
 
 use turndown_cdp::{
-    CodeBlockStyle, Filter, HeadingStyle, LinkReferenceStyle, LinkStyle, Node, Rule,
+    CodeBlockStyle, HeadingStyle, LinkReferenceStyle, LinkStyle, Node,
     TurndownOptions, TurndownService as RustTurndownService,
 };
 
@@ -141,13 +141,10 @@ impl TurndownService {
             .map_err(|e| napi::Error::from_reason(e.to_string()))
     }
 
-    /// Add a custom rule
+    /// Add a custom rule (currently no-op, rules system simplified)
     #[napi]
-    pub fn add_rule(&mut self, key: String, filter: String) -> napi::Result<&Self> {
-        // For now, only support simple tag-based rules from JS
-        // Full rule support would require more complex bindings
-        let rule = Rule::for_tag(&filter, |_, content, _| content.to_string());
-        self.inner.add_rule(&key, rule);
+    pub fn add_rule(&mut self, _key: String, _filter: String) -> napi::Result<&Self> {
+        // TODO: Re-implement custom rules when needed
         Ok(self)
     }
 
@@ -155,7 +152,7 @@ impl TurndownService {
     #[napi]
     pub fn keep(&mut self, filter: Vec<String>) -> &Self {
         for tag in filter {
-            self.inner.keep(Filter::TagName(tag.to_lowercase()));
+            self.inner.keep(&tag);
         }
         self
     }
@@ -164,7 +161,7 @@ impl TurndownService {
     #[napi]
     pub fn remove(&mut self, filter: Vec<String>) -> &Self {
         for tag in filter {
-            self.inner.remove(Filter::TagName(tag.to_lowercase()));
+            self.inner.remove(&tag);
         }
         self
     }
