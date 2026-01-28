@@ -117,12 +117,25 @@ fn process_element(dom: &VDom, parser: &Parser, tag: &HTMLTag) -> Option<Block> 
             })
         }
         "hr" => Some(Block::ThematicBreak),
-        "table" => {
-            let (headers, rows) = collect_table(dom, parser, tag);
-            if headers.is_empty() && rows.is_empty() {
+        // Tables: turndown JS extracts text content (table-to-markdown is a GFM plugin)
+        "table" | "thead" | "tbody" | "tfoot" | "tr" => {
+            let children = tag.children();
+            let inner_blocks = process_nodes(dom, parser, children.top().as_slice());
+            match inner_blocks.len() {
+                0 => {
+                    let inlines = collect_inlines(dom, parser, tag);
+                    if inlines.is_empty() { None } else { Some(Block::Paragraph(inlines)) }
+                }
+                1 => Some(inner_blocks.into_iter().next().unwrap()),
+                _ => Some(Block::Document(inner_blocks)),
+            }
+        }
+        "th" | "td" => {
+            let inlines = collect_inlines(dom, parser, tag);
+            if inlines.is_empty() {
                 None
             } else {
-                Some(Block::Table { headers, rows })
+                Some(Block::Paragraph(inlines))
             }
         }
         "div" | "section" | "article" | "main" | "aside" | "header" | "footer" | "nav" | "figure" | "body" | "html" => {
@@ -156,7 +169,26 @@ fn process_element(dom: &VDom, parser: &Parser, tag: &HTMLTag) -> Option<Block> 
                 None
             }
         }
-        "script" | "style" | "noscript" | "template" | "head" | "meta" | "link" => None,
+        "script" | "style" | "noscript" | "template" | "meta" | "link" => None,
+        "head" | "title" => {
+            // Extract text content (turndown JS converts <title> to text)
+            let children = tag.children();
+            let inner_blocks = process_nodes(dom, parser, children.top().as_slice());
+            if !inner_blocks.is_empty() {
+                match inner_blocks.len() {
+                    1 => Some(inner_blocks.into_iter().next().unwrap()),
+                    _ => Some(Block::Document(inner_blocks)),
+                }
+            } else {
+                let text = get_text_content(dom, parser, tag);
+                let trimmed = text.trim().to_string();
+                if trimmed.is_empty() {
+                    None
+                } else {
+                    Some(Block::Paragraph(vec![Inline::Text(trimmed)]))
+                }
+            }
+        }
         // Handle inline elements at root level by wrapping in paragraph
         "strong" | "b" | "em" | "i" | "code" | "span" | "small" | "sub" | "sup" | "mark" | "del" | "ins" | "u" => {
             let mut inlines = InlineVec::new();
@@ -246,7 +278,34 @@ fn collect_inlines(dom: &VDom, parser: &Parser, tag: &HTMLTag) -> Vec<Inline> {
         }
     }
 
+    // Trim leading/trailing whitespace from inline content (matches browser innerText behavior)
+    trim_inlines(&mut inlines);
+
     inlines.into_vec()
+}
+
+/// Trim leading whitespace from first text node and trailing whitespace from last text node
+fn trim_inlines(inlines: &mut InlineVec) {
+    // Trim leading
+    if let Some(Inline::Text(text)) = inlines.first_mut() {
+        let trimmed = text.trim_start().to_string();
+        if trimmed.is_empty() {
+            inlines.remove(0);
+            // Recurse to trim the next element if needed
+            trim_inlines(inlines);
+            return;
+        }
+        *text = trimmed;
+    }
+    // Trim trailing
+    if let Some(Inline::Text(text)) = inlines.last_mut() {
+        let trimmed = text.trim_end().to_string();
+        if trimmed.is_empty() {
+            inlines.pop();
+            return;
+        }
+        *text = trimmed;
+    }
 }
 
 fn collect_inline_node(dom: &VDom, parser: &Parser, node: &Node, inlines: &mut InlineVec) {
@@ -389,6 +448,25 @@ fn collect_text_recursive(dom: &VDom, parser: &Parser, node: &Node, result: &mut
     }
 }
 
+/// Check if an li element has any block-level child elements
+fn li_has_block_children(parser: &Parser, tag: &HTMLTag) -> bool {
+    let children = tag.children();
+    for handle in children.top().iter() {
+        if let Some(Node::Tag(child_tag)) = handle.get(parser) {
+            let name = child_tag.name().as_utf8_str();
+            let lower = name.to_ascii_lowercase();
+            match lower.as_str() {
+                "p" | "div" | "ul" | "ol" | "blockquote" | "pre" | "h1" | "h2" | "h3" | "h4"
+                | "h5" | "h6" | "table" | "hr" | "section" | "article" | "header" | "footer"
+                | "nav" | "main" | "aside" | "figure" | "figcaption" | "details" | "summary"
+                | "dl" | "dt" | "dd" => return true,
+                _ => {}
+            }
+        }
+    }
+    false
+}
+
 fn collect_list_items(dom: &VDom, parser: &Parser, tag: &HTMLTag) -> Vec<ListItem> {
     let mut items = Vec::new();
     let children = tag.children();
@@ -397,18 +475,24 @@ fn collect_list_items(dom: &VDom, parser: &Parser, tag: &HTMLTag) -> Vec<ListIte
         if let Some(Node::Tag(li_tag)) = handle.get(parser) {
             let tag_name = li_tag.name().as_utf8_str();
             if tag_name.eq_ignore_ascii_case("li") {
-                let li_children = li_tag.children();
-                let inner_blocks = process_nodes(dom, parser, li_children.top().as_slice());
-
-                let content = if inner_blocks.is_empty() {
+                let content = if li_has_block_children(parser, li_tag) {
+                    // Has block children - process as blocks
+                    let li_children = li_tag.children();
+                    let inner_blocks = process_nodes(dom, parser, li_children.top().as_slice());
+                    if inner_blocks.is_empty() {
+                        let inlines = collect_inlines(dom, parser, li_tag);
+                        if inlines.is_empty() { vec![] } else { vec![Block::Paragraph(inlines)] }
+                    } else {
+                        inner_blocks
+                    }
+                } else {
+                    // Only inline children - collect as single paragraph
                     let inlines = collect_inlines(dom, parser, li_tag);
                     if inlines.is_empty() {
                         vec![]
                     } else {
                         vec![Block::Paragraph(inlines)]
                     }
-                } else {
-                    inner_blocks
                 };
 
                 items.push(ListItem::new(content));
@@ -448,64 +532,12 @@ fn extract_code_content(dom: &VDom, parser: &Parser, pre_tag: &HTMLTag) -> (Stri
     (code, None)
 }
 
-fn collect_table(dom: &VDom, parser: &Parser, table_tag: &HTMLTag) -> (Vec<Vec<Inline>>, Vec<Vec<Vec<Inline>>>) {
-    let mut headers = Vec::new();
-    let mut rows = Vec::new();
-
-    fn process_table_section(dom: &VDom, parser: &Parser, tag: &HTMLTag, headers: &mut Vec<Vec<Inline>>, rows: &mut Vec<Vec<Vec<Inline>>>) {
-        let children = tag.children();
-        for handle in children.top().iter() {
-            if let Some(Node::Tag(child_tag)) = handle.get(parser) {
-                let tag_name = child_tag.name().as_utf8_str();
-                let tag_lower = tag_name.to_ascii_lowercase();
-
-                match tag_lower.as_str() {
-                    "thead" | "tbody" | "tfoot" => {
-                        process_table_section(dom, parser, child_tag, headers, rows);
-                    }
-                    "tr" => {
-                        let (row, is_header) = collect_table_row(dom, parser, child_tag);
-                        if !row.is_empty() {
-                            if is_header && headers.is_empty() {
-                                *headers = row;
-                            } else {
-                                rows.push(row);
-                            }
-                        }
-                    }
-                    _ => {}
-                }
-            }
-        }
-    }
-
-    process_table_section(dom, parser, table_tag, &mut headers, &mut rows);
-    (headers, rows)
-}
-
-fn collect_table_row(dom: &VDom, parser: &Parser, tr_tag: &HTMLTag) -> (Vec<Vec<Inline>>, bool) {
-    let mut cells = Vec::new();
-    let mut is_header = false;
-    let children = tr_tag.children();
-
-    for handle in children.top().iter() {
-        if let Some(Node::Tag(cell_tag)) = handle.get(parser) {
-            let tag_name = cell_tag.name().as_utf8_str();
-            let tag_lower = tag_name.to_ascii_lowercase();
-
-            if tag_lower == "th" {
-                is_header = true;
-                cells.push(collect_inlines(dom, parser, cell_tag));
-            } else if tag_lower == "td" {
-                cells.push(collect_inlines(dom, parser, cell_tag));
-            }
-        }
-    }
-
-    (cells, is_header)
-}
-
 /// Combined whitespace collapsing and markdown escaping in single pass
+///
+/// Matches turndown JS escaping rules:
+/// - Always escape: \ * _ [ ] `
+/// - Start-of-text only: - (alone), + (before space), # (1-6 before space),
+///   > (alone), = (series), ~ (series of 3+), digit+.
 #[inline]
 fn collapse_and_escape(s: &str) -> String {
     const NEEDS_ESCAPE: [bool; 128] = {
@@ -515,10 +547,6 @@ fn collapse_and_escape(s: &str) -> String {
         table[b'_' as usize] = true;
         table[b'[' as usize] = true;
         table[b']' as usize] = true;
-        table[b'#' as usize] = true;
-        table[b'+' as usize] = true;
-        table[b'-' as usize] = true;
-        table[b'!' as usize] = true;
         table[b'`' as usize] = true;
         table
     };
@@ -542,7 +570,52 @@ fn collapse_and_escape(s: &str) -> String {
         }
     }
 
+    // Handle start-of-text escaping (matches turndown JS behavior)
+    escape_line_start(&mut result);
+
     result
+}
+
+/// Escape markdown-significant patterns at the start of text
+#[inline]
+fn escape_line_start(s: &mut String) {
+    let trimmed = s.trim_start();
+    if trimmed.is_empty() {
+        return;
+    }
+
+    let bytes = trimmed.as_bytes();
+    let first = bytes[0];
+
+    let needs_escape = match first {
+        b'-' => true,
+        b'+' if bytes.len() > 1 && bytes[1] == b' ' => true,
+        b'>' => true,
+        b'#' => {
+            // Escape #{1,6} followed by space
+            let hash_count = bytes.iter().take_while(|&&b| b == b'#').count();
+            hash_count <= 6 && bytes.len() > hash_count && bytes[hash_count] == b' '
+        }
+        b'=' => true,
+        b'~' => {
+            // Escape ~~~ (3+ tildes)
+            bytes.iter().take_while(|&&b| b == b'~').count() >= 3
+        }
+        b'0'..=b'9' => {
+            // Escape digit(s) followed by . and space
+            let digit_count = bytes.iter().take_while(|b| b.is_ascii_digit()).count();
+            digit_count > 0
+                && bytes.len() > digit_count
+                && bytes[digit_count] == b'.'
+        }
+        _ => false,
+    };
+
+    if needs_escape {
+        // Find the position of the first non-whitespace char and insert backslash
+        let leading_ws = s.len() - trimmed.len();
+        s.insert(leading_ws, '\\');
+    }
 }
 
 #[cfg(test)]
@@ -624,7 +697,7 @@ mod profiling {
         let html = std::fs::read_to_string(
             std::env::current_dir()
                 .unwrap()
-                .join("../../benchmarks/fixtures/large-100kb.html"),
+                .join("../../benchmarks/fixtures/large.html"),
         )
         .unwrap_or_else(|_| "<p>Test</p>".repeat(1000));
 

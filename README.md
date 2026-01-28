@@ -42,12 +42,12 @@ turndown-node is significantly faster than the JavaScript implementation thanks 
 
 | Fixture | Size   | turndown-node | turndown (JS) | Speedup   |
 | ------- | ------ | ------------- | ------------- | --------- |
-| small   | 1 KB   | 66,473 ops/s  | 3,287 ops/s   | **20.2x** |
-| medium  | 10 KB  | 7,831 ops/s   | 438 ops/s     | **17.9x** |
-| large   | 100 KB | 865 ops/s     | 46 ops/s      | **18.9x** |
-| huge    | 1 MB   | 69 ops/s      | 3 ops/s       | **21.4x** |
+| small   | 2 KB   | 59,146 ops/s  | 3,276 ops/s   | **18.1x** |
+| medium  | 16 KB  | 7,061 ops/s   | 433 ops/s     | **16.3x** |
+| large   | 141 KB | 774 ops/s     | 47 ops/s      | **16.6x** |
+| huge    | 1.4 MB | 64 ops/s      | 3 ops/s       | **19.9x** |
 
-**Average speedup: ~20x faster**
+**Average speedup: ~18x faster**
 
 > Benchmarks run on Apple M-Series, Node.js v24. Run `node benchmarks/benchmark.js` to reproduce.
 
@@ -160,3 +160,7 @@ turndown-node/
 ## License
 
 MIT
+
+---
+
+Copyright 2026 [Sebastian Software GmbH](https://sebastian-software.de), Mainz
