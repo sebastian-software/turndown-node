@@ -174,5 +174,20 @@ jobs:
           echo "Contents after rename:"
           ls -la packages/${{ matrix.package }}/
 
+      - name: Debug native module
+        shell: bash
+        run: |
+          node -e "
+            const TurndownNode = require('turndown-node');
+            const service = new TurndownNode();
+            console.log('Testing turndown-node...');
+            console.log('Input: <em>test</em>');
+            console.log('Output:', service.turndown('<em>test</em>'));
+            console.log('Input: <strong>test</strong>');
+            console.log('Output:', service.turndown('<strong>test</strong>'));
+            console.log('Input: <code>test</code>');
+            console.log('Output:', service.turndown('<code>test</code>'));
+          "
+
       - name: Run parity tests
         run: pnpm test:js
