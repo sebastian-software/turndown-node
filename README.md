@@ -40,15 +40,14 @@ const markdown = turndownService.turndown("<h1>Hello World</h1>");
 
 turndown-node is significantly faster than the JavaScript implementation thanks to native Rust code:
 
-| Fixture       | Size     | turndown-node | turndown (JS) | Speedup   |
-| ------------- | -------- | ------------- | ------------- | --------- |
-| simple        | 36 bytes | 315,048 ops/s | 54,320 ops/s  | **5.80x** |
-| blog-post     | 2.5 KB   | 9,445 ops/s   | 3,287 ops/s   | **2.87x** |
-| documentation | 4.3 KB   | 3,978 ops/s   | 1,546 ops/s   | **2.57x** |
-| large-article | 28.6 KB  | 786 ops/s     | 304 ops/s     | **2.59x** |
-| large-100kb   | 188.8 KB | 97 ops/s      | 28 ops/s      | **3.48x** |
+| Fixture | Size   | turndown-node | turndown (JS) | Speedup   |
+| ------- | ------ | ------------- | ------------- | --------- |
+| small   | 1 KB   | 66,473 ops/s  | 3,287 ops/s   | **20.2x** |
+| medium  | 10 KB  | 7,831 ops/s   | 438 ops/s     | **17.9x** |
+| large   | 100 KB | 865 ops/s     | 46 ops/s      | **18.9x** |
+| huge    | 1 MB   | 69 ops/s      | 3 ops/s       | **21.4x** |
 
-**Average speedup: 3.46x faster**
+**Average speedup: ~20x faster**
 
 > Benchmarks run on Apple M-Series, Node.js v24. Run `node benchmarks/benchmark.js` to reproduce.
 
