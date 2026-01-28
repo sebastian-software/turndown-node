@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.10](https://github.com/sebastian-software/turndown-node/compare/turndown-node-v0.0.9...turndown-node-v0.0.10) (2026-01-28)
+
+
+### Bug Fixes
+
+* add turndown-core to crates.io publish workflow ([25ec9f6](https://github.com/sebastian-software/turndown-node/commit/25ec9f68651432ac7be7e1ec9583844a40800680))
+
 ## [0.0.9](https://github.com/sebastian-software/turndown-node/compare/turndown-node-v0.0.8...turndown-node-v0.0.9) (2026-01-28)
 
 
