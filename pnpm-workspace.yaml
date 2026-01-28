@@ -2,3 +2,4 @@ packages:
   - "packages/*"
   - "crates/turndown-napi"
   - "tests"
+  - "benchmarks"

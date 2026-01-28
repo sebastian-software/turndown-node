@@ -1,0 +1,11 @@
+{
+  "name": "turndown-node-benchmarks",
+  "private": true,
+  "scripts": {
+    "bench": "node benchmark.js"
+  },
+  "dependencies": {
+    "turndown": "^7.2.0",
+    "turndown-node": "workspace:*"
+  }
+}

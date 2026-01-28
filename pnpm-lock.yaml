@@ -36,6 +36,15 @@ importers:
         specifier: ^8.0.0
         version: 8.54.0(eslint@9.39.2)(typescript@5.9.3)
 
+  benchmarks:
+    dependencies:
+      turndown:
+        specifier: ^7.2.0
+        version: 7.2.2
+      turndown-node:
+        specifier: workspace:*
+        version: link:../packages/turndown-node
+
   crates/turndown-napi:
     devDependencies:
       '@napi-rs/cli':
