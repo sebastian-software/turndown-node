@@ -34,6 +34,14 @@ jobs:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
 
+      - name: Publish turndown-core crate
+        run: cargo publish -p turndown-core --allow-dirty
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+      - name: Wait for crates.io index update
+        run: sleep 30
+
       - name: Publish turndown-cdp crate
         run: cargo publish -p turndown-cdp --allow-dirty
         env:

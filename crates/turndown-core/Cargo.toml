@@ -8,5 +8,6 @@ authors.workspace = true
 description = "Core Markdown AST and serialization for turndown"
 keywords = ["markdown", "ast", "serialization"]
 categories = ["text-processing"]
+readme = "README.md"
 
 [dependencies]
