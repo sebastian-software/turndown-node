@@ -29,7 +29,7 @@
   },
   "homepage": "https://github.com/sebastian-software/turndown-node#readme",
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
   },
   "optionalDependencies": {
     "@turndown-node/darwin-arm64": "workspace:*",

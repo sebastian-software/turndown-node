@@ -6,9 +6,9 @@ Thank you for your interest in contributing to turndown-node! This document prov
 
 ### Prerequisites
 
-- Node.js >= 18
+- Node.js >= 22
 - Rust >= 1.70
-- pnpm >= 9
+- pnpm >= 10
 
 ### Getting Started
 

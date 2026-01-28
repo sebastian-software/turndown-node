@@ -5,7 +5,7 @@
 [![npm downloads](https://img.shields.io/npm/dm/turndown-node.svg)](https://www.npmjs.com/package/turndown-node)
 [![crates.io](https://img.shields.io/crates/v/turndown-cdp.svg)](https://crates.io/crates/turndown-cdp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Node.js](https://img.shields.io/badge/Node.js-%3E%3D18-green.svg)](https://nodejs.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-%3E%3D22-green.svg)](https://nodejs.org/)
 
 Convert HTML to Markdown. Native Node.js bindings powered by Rust for maximum performance.
 
@@ -108,7 +108,6 @@ See [Architecture Decision Records](docs/adr/) for design rationale.
 | Platform | Architecture          | npm | Rust |
 | -------- | --------------------- | --- | ---- |
 | macOS    | ARM64 (Apple Silicon) | ✅  | ✅   |
-| macOS    | x64                   | -   | ✅   |
 | Linux    | x64 (glibc)           | ✅  | ✅   |
 | Linux    | ARM64 (glibc)         | ✅  | ✅   |
 | Windows  | x64                   | ✅  | ✅   |
@@ -117,9 +116,9 @@ See [Architecture Decision Records](docs/adr/) for design rationale.
 
 ### Prerequisites
 
-- Node.js >= 18
+- Node.js >= 22
 - Rust >= 1.70
-- pnpm >= 9
+- pnpm >= 10
 
 ### Setup
 

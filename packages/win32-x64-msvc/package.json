@@ -14,7 +14,7 @@
   "description": "turndown-node native binding for Windows x64",
   "license": "MIT",
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
   },
   "repository": {
     "type": "git",
