@@ -113,7 +113,7 @@ fn process_element(dom: &VDom, parser: &Parser, tag: &HTMLTag) -> Option<Block> 
             Some(Block::CodeBlock {
                 language: lang,
                 code,
-                fenced: true,
+                fenced: false, // Let options.code_block_style decide
             })
         }
         "hr" => Some(Block::ThematicBreak),
@@ -157,6 +157,16 @@ fn process_element(dom: &VDom, parser: &Parser, tag: &HTMLTag) -> Option<Block> 
             }
         }
         "script" | "style" | "noscript" | "template" | "head" | "meta" | "link" => None,
+        // Handle inline elements at root level by wrapping in paragraph
+        "strong" | "b" | "em" | "i" | "code" | "span" | "small" | "sub" | "sup" | "mark" | "del" | "ins" | "u" => {
+            let mut inlines = InlineVec::new();
+            collect_inline_from_tag(dom, parser, tag, &mut inlines);
+            if inlines.is_empty() {
+                None
+            } else {
+                Some(Block::Paragraph(inlines.into_vec()))
+            }
+        }
         _ => {
             // Unknown element - try to extract content
             let children = tag.children();
@@ -173,6 +183,53 @@ fn process_element(dom: &VDom, parser: &Parser, tag: &HTMLTag) -> Option<Block> 
                     None
                 } else {
                     Some(Block::Paragraph(inlines))
+                }
+            }
+        }
+    }
+}
+
+/// Process a single inline tag and add to inlines vector
+fn collect_inline_from_tag(dom: &VDom, parser: &Parser, tag: &HTMLTag, inlines: &mut InlineVec) {
+    let tag_name = tag.name().as_utf8_str();
+    let tag_lower = tag_name.to_ascii_lowercase();
+
+    match tag_lower.as_str() {
+        "strong" | "b" => {
+            let inner = collect_inlines(dom, parser, tag);
+            if !inner.is_empty() {
+                inlines.push(Inline::Strong(inner));
+            }
+        }
+        "em" | "i" => {
+            let inner = collect_inlines(dom, parser, tag);
+            if !inner.is_empty() {
+                inlines.push(Inline::Emphasis(inner));
+            }
+        }
+        "code" => {
+            let code = get_text_content(dom, parser, tag);
+            if !code.is_empty() {
+                inlines.push(Inline::Code(code));
+            }
+        }
+        "a" => {
+            inlines.push(process_link(dom, parser, tag));
+        }
+        "img" => {
+            if let Some(img) = process_image(tag) {
+                inlines.push(img);
+            }
+        }
+        "br" => {
+            inlines.push(Inline::LineBreak);
+        }
+        _ => {
+            // Pass through content for other inline elements
+            let children = tag.children();
+            for handle in children.top().iter() {
+                if let Some(child) = handle.get(parser) {
+                    collect_inline_node(dom, parser, child, inlines);
                 }
             }
         }

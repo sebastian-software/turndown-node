@@ -156,40 +156,11 @@ jobs:
           name: bindings-${{ matrix.package }}
           path: packages/${{ matrix.package }}/
 
-      - name: List downloaded files
-        shell: bash
-        run: |
-          echo "Contents of packages/${{ matrix.package }}:"
-          ls -la packages/${{ matrix.package }}/
-
       - name: Rename artifact
         shell: bash
         run: |
           cd packages/${{ matrix.package }}
           mv *.node turndown.${{ matrix.package }}.node || true
-
-      - name: List after rename
-        shell: bash
-        run: |
-          echo "Contents after rename:"
-          ls -la packages/${{ matrix.package }}/
-
-      - name: Debug native module
-        shell: bash
-        run: |
-          cd tests
-          node -e "
-            const TurndownNode = require('turndown-node');
-            const service = new TurndownNode();
-            console.log('Testing turndown-node...');
-            // Test with different HTML structures
-            console.log('Test 1: <em>test</em>');
-            console.log('Output:', JSON.stringify(service.turndown('<em>test</em>')));
-            console.log('Test 2: <p><em>test</em></p>');
-            console.log('Output:', JSON.stringify(service.turndown('<p><em>test</em></p>')));
-            console.log('Test 3: <html><body><em>test</em></body></html>');
-            console.log('Output:', JSON.stringify(service.turndown('<html><body><em>test</em></body></html>')));
-          "
 
       - name: Run parity tests
         run: pnpm test:js
