@@ -16,7 +16,7 @@ export interface Options {
 }
 export declare class TurndownService {
   constructor(options?: Options | undefined | null);
-  /** Convert HTML to Markdown using streaming parser */
+  /** Convert HTML to Markdown using lol_html streaming parser */
   turndown(html: string): string;
   /** Add a custom rule (currently no-op) */
   addRule(key: string, filter: string): this;

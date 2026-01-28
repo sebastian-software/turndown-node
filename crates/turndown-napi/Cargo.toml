@@ -9,7 +9,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 turndown-core = { path = "../turndown-core" }
-scraper = "0.22"
+lol_html = "2"
 napi = { version = "2", default-features = false, features = ["napi4"] }
 napi-derive = "2"
 

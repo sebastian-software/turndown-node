@@ -13,8 +13,8 @@ HTML → Markdown Konvertierung optimieren durch:
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                                                                 │
-│  HTML String ───scraper────▶ ┌──────────────┐                   │
-│       (turndown-napi)        │              │                   │
+│  HTML String ───lol_html───▶ ┌──────────────┐                   │
+│       (streaming)            │              │                   │
 │                              │ Markdown AST │ ──▶ Markdown String
 │  CDP Node Tree ─────────────▶│ (turndown-   │                   │
 │       (turndown-cdp)         │    core)     │                   │
@@ -81,26 +81,26 @@ HTML → Markdown Konvertierung optimieren durch:
 
 ---
 
-## Phase 3: Direkte AST-Konvertierung in turndown-napi
+## Phase 3: Streaming mit lol_html in turndown-napi
 
 ### 3.1 Dependencies anpassen
 
 - [x] `turndown-core` als Dependency (statt `turndown-cdp`)
-- [x] `scraper` für HTML Parsing beibehalten
+- [x] `lol_html` für echtes Streaming HTML Parsing
+- [x] `scraper` entfernt
 
-> **Hinweis**: lol_html wurde evaluiert, aber die v2 API hatte Breaking Changes
-> (fehlendes `on_end_tag`). Daher pragmatischer Ansatz: scraper → AST direkt.
+### 3.2 Streaming Konvertierung mit lol_html
 
-### 3.2 Direkte Konvertierung
-
-- [x] `crates/turndown-napi/src/streaming.rs`
-  - HTML → scraper DOM → Markdown AST (ohne turndown-cdp Umweg)
-  - Alle HTML-Elemente direkt auf Block/Inline gemappt
-  - 9 Unit Tests
+- [x] `crates/turndown-napi/src/lol_streaming.rs`
+  - Echtes Streaming: HTML → Markdown AST (kein DOM-Tree im Speicher)
+  - `element!("*")` Handler für alle Elemente
+  - `end_tag_handlers()` für End-Tag Callbacks
+  - State-Management mit `Rc<RefCell<ParserState>>`
+  - 8 Unit Tests
 
 ### 3.3 Integration
 
-- [x] `TurndownService::turndown()` nutzt `streaming::html_to_ast()`
+- [x] `TurndownService::turndown()` nutzt `lol_streaming::html_to_ast()`
 - [x] turndown-cdp Dependency entfernt (NAPI-Pfad unabhängig)
 
 ### 3.4 Tests
@@ -168,5 +168,14 @@ Refactoring erfolgreich abgeschlossen:
 
 - **turndown-core**: Gemeinsamer Markdown AST + Serialisierung
 - **turndown-cdp**: CDP Node → AST Konvertierung (für chromiumoxide)
-- **turndown-napi**: Direkter HTML → AST Pfad (scraper)
+- **turndown-napi**: Streaming HTML → Markdown AST (lol_html, kein DOM-Tree)
 - **Performance**: 3.49x durchschnittlicher Speedup vs. JS
+
+### Architektur-Vorteil
+
+```
+Vorher:  HTML → DOM Tree → Markdown AST → String
+Jetzt:   HTML → (streaming) → Markdown AST → String
+```
+
+Kein HTML-DOM im Speicher = weniger RAM bei großen Dokumenten.
