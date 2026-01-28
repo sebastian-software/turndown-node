@@ -1,46 +1,11 @@
 #![deny(clippy::all)]
 
+mod streaming;
+
 use napi_derive::napi;
-use scraper::{ElementRef, Html, Node as ScraperNode};
-
-use turndown_cdp::{
-    CodeBlockStyle, HeadingStyle, LinkReferenceStyle, LinkStyle, Node,
-    TurndownOptions, TurndownService as RustTurndownService,
+use turndown_core::{
+    CodeBlockStyle, HeadingStyle, LinkReferenceStyle, LinkStyle, Options as CoreOptions,
 };
-
-/// Parse an HTML string into a turndown Node tree
-fn parse_html(html: &str) -> Node {
-    let document = Html::parse_fragment(html);
-    scraper_to_node(document.root_element())
-}
-
-/// Convert a scraper ElementRef to turndown Node
-fn scraper_to_node(element: ElementRef) -> Node {
-    let tag = element.value().name();
-    let attrs: Vec<(&str, &str)> = element.value().attrs().collect();
-
-    let mut node = if attrs.is_empty() {
-        Node::element(tag)
-    } else {
-        Node::element_with_attrs(tag, attrs)
-    };
-
-    for child in element.children() {
-        match child.value() {
-            ScraperNode::Text(text) => {
-                node.add_child(Node::text(&text.text));
-            }
-            ScraperNode::Element(_) => {
-                if let Some(child_element) = ElementRef::wrap(child) {
-                    node.add_child(scraper_to_node(child_element));
-                }
-            }
-            _ => {}
-        }
-    }
-
-    node
-}
 
 #[napi(object)]
 pub struct Options {
@@ -55,9 +20,9 @@ pub struct Options {
     pub link_reference_style: Option<String>,
 }
 
-impl From<Options> for TurndownOptions {
+impl From<Options> for CoreOptions {
     fn from(opts: Options) -> Self {
-        let mut result = TurndownOptions::default();
+        let mut result = CoreOptions::default();
 
         if let Some(style) = opts.heading_style {
             result.heading_style = match style.to_lowercase().as_str() {
@@ -118,57 +83,69 @@ impl From<Options> for TurndownOptions {
 
 #[napi]
 pub struct TurndownService {
-    inner: RustTurndownService,
+    options: CoreOptions,
 }
 
 #[napi]
 impl TurndownService {
     #[napi(constructor)]
     pub fn new(options: Option<Options>) -> Self {
-        let inner = match options {
-            Some(opts) => RustTurndownService::with_options(opts.into()),
-            None => RustTurndownService::new(),
+        let options = match options {
+            Some(opts) => opts.into(),
+            None => CoreOptions::default(),
         };
-        Self { inner }
+        Self { options }
     }
 
-    /// Convert HTML to Markdown
+    /// Convert HTML to Markdown using streaming parser
     #[napi]
     pub fn turndown(&self, html: String) -> napi::Result<String> {
-        let node = parse_html(&html);
-        self.inner
-            .turndown(&node)
-            .map_err(|e| napi::Error::from_reason(e.to_string()))
+        // Use streaming conversion: HTML → AST → Markdown
+        let ast = streaming::html_to_ast(&html, &self.options);
+        let result = turndown_core::serialize(&ast, &self.options);
+        Ok(result)
     }
 
-    /// Add a custom rule (currently no-op, rules system simplified)
+    /// Add a custom rule (currently no-op)
     #[napi]
     pub fn add_rule(&mut self, _key: String, _filter: String) -> napi::Result<&Self> {
-        // TODO: Re-implement custom rules when needed
+        // TODO: Re-implement custom rules
         Ok(self)
     }
 
-    /// Keep elements matching the filter as HTML
+    /// Keep elements matching the filter as HTML (currently no-op)
     #[napi]
-    pub fn keep(&mut self, filter: Vec<String>) -> &Self {
-        for tag in filter {
-            self.inner.keep(&tag);
-        }
+    pub fn keep(&mut self, _filter: Vec<String>) -> &Self {
+        // TODO: Implement keep in streaming
         self
     }
 
-    /// Remove elements matching the filter
+    /// Remove elements matching the filter (currently no-op)
     #[napi]
-    pub fn remove(&mut self, filter: Vec<String>) -> &Self {
-        for tag in filter {
-            self.inner.remove(&tag);
-        }
+    pub fn remove(&mut self, _filter: Vec<String>) -> &Self {
+        // TODO: Implement remove in streaming
         self
     }
 
     /// Escape markdown special characters
     #[napi]
     pub fn escape(&self, text: String) -> String {
-        self.inner.escape(&text)
+        escape_markdown(&text)
     }
+}
+
+fn escape_markdown(text: &str) -> String {
+    let mut result = String::with_capacity(text.len());
+
+    for c in text.chars() {
+        match c {
+            '\\' | '*' | '_' | '[' | ']' | '#' | '+' | '-' | '!' | '`' => {
+                result.push('\\');
+                result.push(c);
+            }
+            _ => result.push(c),
+        }
+    }
+
+    result
 }

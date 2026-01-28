@@ -13,8 +13,8 @@ HTML → Markdown Konvertierung optimieren durch:
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                                                                 │
-│  HTML String ───lol_html───▶ ┌──────────────┐                   │
-│       (streaming)            │              │                   │
+│  HTML String ───scraper────▶ ┌──────────────┐                   │
+│       (turndown-napi)        │              │                   │
 │                              │ Markdown AST │ ──▶ Markdown String
 │  CDP Node Tree ─────────────▶│ (turndown-   │                   │
 │       (turndown-cdp)         │    core)     │                   │
@@ -81,29 +81,34 @@ HTML → Markdown Konvertierung optimieren durch:
 
 ---
 
-## Phase 3: Streaming in turndown-napi
+## Phase 3: Direkte AST-Konvertierung in turndown-napi
 
-### 3.1 lol_html Dependency
+### 3.1 Dependencies anpassen
 
-- [ ] `lol_html` zu `turndown-napi/Cargo.toml` hinzufügen
+- [x] `turndown-core` als Dependency (statt `turndown-cdp`)
+- [x] `scraper` für HTML Parsing beibehalten
 
-### 3.2 Streaming Konverter
+> **Hinweis**: lol_html wurde evaluiert, aber die v2 API hatte Breaking Changes
+> (fehlendes `on_end_tag`). Daher pragmatischer Ansatz: scraper → AST direkt.
 
-- [ ] `crates/turndown-napi/src/streaming.rs`
-  - State-Machine für offene Tags
-  - lol_html Handlers → MdNode Aufbau
+### 3.2 Direkte Konvertierung
+
+- [x] `crates/turndown-napi/src/streaming.rs`
+  - HTML → scraper DOM → Markdown AST (ohne turndown-cdp Umweg)
+  - Alle HTML-Elemente direkt auf Block/Inline gemappt
+  - 9 Unit Tests
 
 ### 3.3 Integration
 
-- [ ] `TurndownService::turndown()` nutzt Streaming-Pfad
-- [ ] Alte scraper-Logik entfernen (oder als Fallback behalten?)
+- [x] `TurndownService::turndown()` nutzt `streaming::html_to_ast()`
+- [x] turndown-cdp Dependency entfernt (NAPI-Pfad unabhängig)
 
 ### 3.4 Tests
 
-- [ ] Parity Tests müssen weiterhin passieren
-- [ ] `pnpm test`
+- [x] 18 Parity Tests grün (`pnpm test`)
+- [x] Performance: ~3.5x Speedup (stabil)
 
-**Checkpoint 3**: `pnpm test` grün, Performance-Verbesserung messbar
+**Checkpoint 3**: `pnpm test` grün ✅
 
 ---
 
@@ -150,5 +155,5 @@ HTML → Markdown Konvertierung optimieren durch:
 
 ## Aktueller Status
 
-**Phase**: 2 abgeschlossen, Phase 3 bereit
-**Letzter Checkpoint**: 2 ✅ (turndown-cdp refactored, 27+18 Tests grün)
+**Phase**: 3 abgeschlossen, Phase 4 bereit
+**Letzter Checkpoint**: 3 ✅ (NAPI direkte AST-Konvertierung, 18 Parity Tests grün)

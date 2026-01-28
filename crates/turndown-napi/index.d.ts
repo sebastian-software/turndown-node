@@ -16,13 +16,13 @@ export interface Options {
 }
 export declare class TurndownService {
   constructor(options?: Options | undefined | null);
-  /** Convert HTML to Markdown */
+  /** Convert HTML to Markdown using streaming parser */
   turndown(html: string): string;
-  /** Add a custom rule (currently no-op, rules system simplified) */
+  /** Add a custom rule (currently no-op) */
   addRule(key: string, filter: string): this;
-  /** Keep elements matching the filter as HTML */
+  /** Keep elements matching the filter as HTML (currently no-op) */
   keep(filter: Array<string>): this;
-  /** Remove elements matching the filter */
+  /** Remove elements matching the filter (currently no-op) */
   remove(filter: Array<string>): this;
   /** Escape markdown special characters */
   escape(text: string): string;

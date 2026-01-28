@@ -10,7 +10,6 @@ repository = "https://github.com/sebastian-software/turndown-node"
 authors = ["Sebastian Software GmbH"]
 
 [workspace.dependencies]
-scraper = "0.22"
 thiserror = "2"
 
 [profile.release]
