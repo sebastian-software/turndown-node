@@ -9,8 +9,8 @@
     "sync-tests": "node sync-tests.js"
   },
   "devDependencies": {
-    "jest": "^29.0.0",
-    "turndown": "^7.2.0",
+    "jest": "^30.3.0",
+    "turndown": "^7.2.4",
     "turndown-node": "workspace:*"
   }
 }
