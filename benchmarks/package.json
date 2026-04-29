@@ -6,8 +6,8 @@
     "bench": "node benchmark.js"
   },
   "dependencies": {
-    "tinybench": "^2.9.0",
-    "turndown": "^7.2.0",
+    "tinybench": "^6.0.1",
+    "turndown": "^7.2.4",
     "turndown-node": "workspace:*"
   }
 }
