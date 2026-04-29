@@ -12,7 +12,7 @@ turndown-core.workspace = true
 tl = "0.7"
 smallvec = "1.13"
 napi = { version = "2", default-features = false, features = ["napi4"] }
-napi-derive = "2"
+napi-derive = "3"
 
 [build-dependencies]
 napi-build = "2"
