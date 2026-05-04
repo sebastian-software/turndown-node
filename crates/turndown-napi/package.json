@@ -7,7 +7,7 @@
     "build:debug": "napi build --platform"
   },
   "devDependencies": {
-    "@napi-rs/cli": "^2.18.0"
+    "@napi-rs/cli": "^3.6.2"
   },
   "napi": {
     "binaryName": "turndown",
