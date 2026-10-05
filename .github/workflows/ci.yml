@@ -67,7 +67,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: macos-14
+          - os: macos-latest
             target: aarch64-apple-darwin
             package: darwin-arm64
           - os: ubuntu-latest
@@ -128,7 +128,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: macos-14
+          - os: macos-latest
             package: darwin-arm64
           - os: ubuntu-latest
             package: linux-x64-gnu
