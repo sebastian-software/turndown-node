@@ -22,7 +22,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: "26"
           cache: "pnpm"
 
       - name: Install dependencies
@@ -89,7 +89,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: "26"
           cache: "pnpm"
 
       - name: Install dependencies
@@ -144,7 +144,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: "26"
           cache: "pnpm"
 
       - name: Install dependencies
@@ -163,4 +163,21 @@ jobs:
           mv *.node turndown.${{ matrix.package }}.node || true
 
       - name: Run parity tests
+        run: pnpm test:js
+      - name: Set up Node.js 22 for package tests
+        if: matrix.package == 'linux-x64-gnu'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Run parity tests on Node.js 22
+        if: matrix.package == 'linux-x64-gnu'
+        run: pnpm test:js
+
+      - name: Set up Node.js 24 for package tests
+        if: matrix.package == 'linux-x64-gnu'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Run parity tests on Node.js 24
+        if: matrix.package == 'linux-x64-gnu'
         run: pnpm test:js
